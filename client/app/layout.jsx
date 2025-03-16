@@ -1,9 +1,10 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Navbar } from "@/components/navbar";
 import { AuthContextProvider } from "@/context/AuthContext";
+import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,19 +29,18 @@ export default function RootLayout({ children }) {
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
           <AuthContextProvider>
-          <div className="flex min-h-screen flex-col overflow-x-hidden">
-          <Navbar />
-          <main className="flex-1">
-
-            {children}
-          </main>
-          <Footer />
-          </div>
+            <div className="flex min-h-screen flex-col overflow-x-hidden">
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </div>
           </AuthContextProvider>
         </ThemeProvider>
       </body>

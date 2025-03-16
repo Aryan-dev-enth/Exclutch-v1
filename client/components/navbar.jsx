@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "./mode-toggle";
 import { Search, Bell, User, Menu } from "lucide-react";
@@ -12,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
 import { navLinks } from "@/constant";
 
@@ -45,11 +44,7 @@ export function Navbar() {
 
   return (
     <header
-      className={cn(
-        "sticky top-0 z-50 w-fulltransition-all duration-200 bg-background"
-        // isScrolled ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-background",
-      )}
-    >
+      className="sticky top-0 z-50 w-fulltransition-all duration-200 bg-background">
       <div className=" flex w-full h-16 sm:px-16 py-2 lg:px-8 px-4 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-8 lg:gap-10">
           <Link href="/" className="flex items-center space-x-2">
@@ -75,13 +70,7 @@ export function Navbar() {
               <Link
                 key={index}
                 href={navlink.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  pathname === "/upload"
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                )}
-              >
+                className="text-sm font-medium transition-colors hover:text-primary">
                 {navlink.title}
               </Link>
             ))}
@@ -175,6 +164,7 @@ export function Navbar() {
                 <Menu className="h-5 w-5 " />
               </Button>
             </SheetTrigger>
+            <SheetTitle className={"hidden"}>Menu</SheetTitle>
             <SheetContent side="right">
               <div className="flex flex-col gap-6 p-6">
                 {navLinks.map((navlink, index) => (
