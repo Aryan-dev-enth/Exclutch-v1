@@ -17,7 +17,6 @@ export const NotesProvider = ({ children }) => {
   useEffect(() => {
     const fetchNotes = async () => {
       try {
-        console.log("INside: ",JSON.parse(localStorage.getItem("user"))._id)
         const response = await getAllNotes(JSON.parse(localStorage.getItem("user"))._id)
           setNotes(response.data);
       } catch (err) {

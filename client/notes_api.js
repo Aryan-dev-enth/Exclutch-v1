@@ -3,7 +3,7 @@ import axios from "axios";
 export const getAllNotes = async (userId) => {
 
   const response = await axios.get(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/${userId} `,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/getAll/${userId} `,
     
 );
     
