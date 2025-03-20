@@ -319,7 +319,7 @@ export default function NoteDetailPage({ params }) {
           </Card>
         </div>
 
-        {/* <div className="">
+        <div className="">
           <Card className="sticky top-20">
             <CardHeader>
               <CardTitle>Related Notes</CardTitle>
@@ -352,7 +352,7 @@ export default function NoteDetailPage({ params }) {
               </Button>
             </CardContent>
           </Card>
-        </div> */}
+        </div> 
       </div>
     </div>
   );
