@@ -41,90 +41,10 @@ import {
   UserPlus,
 } from "lucide-react"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { useUsers } from "@/context/UsersContext"
 
 // Mock user data
-const users = [
-  {
-    id: 1,
-    name: "Alex Johnson",
-    email: "alex.johnson@example.com",
-    role: "Admin",
-    status: "Active",
-    joined: "Jan 15, 2023",
-    uploads: 27,
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 2,
-    name: "Emma Davis",
-    email: "emma.davis@example.com",
-    role: "User",
-    status: "Active",
-    joined: "Feb 3, 2023",
-    uploads: 15,
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 3,
-    name: "Michael Chen",
-    email: "michael.chen@example.com",
-    role: "Moderator",
-    status: "Active",
-    joined: "Mar 12, 2023",
-    uploads: 8,
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 4,
-    name: "Sarah Williams",
-    email: "sarah.williams@example.com",
-    role: "User",
-    status: "Pending",
-    joined: "Apr 5, 2023",
-    uploads: 0,
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 5,
-    name: "James Lee",
-    email: "james.lee@example.com",
-    role: "User",
-    status: "Banned",
-    joined: "May 20, 2023",
-    uploads: 3,
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 6,
-    name: "Olivia Garcia",
-    email: "olivia.garcia@example.com",
-    role: "User",
-    status: "Active",
-    joined: "Jun 8, 2023",
-    uploads: 12,
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 7,
-    name: "David Wilson",
-    email: "david.wilson@example.com",
-    role: "User",
-    status: "Active",
-    joined: "Jul 17, 2023",
-    uploads: 5,
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 8,
-    name: "Jessica Brown",
-    email: "jessica.brown@example.com",
-    role: "User",
-    status: "Pending",
-    joined: "Aug 22, 2023",
-    uploads: 0,
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-]
+
 
 // Mock roles data
 const roles = [
@@ -154,6 +74,8 @@ export default function UserManagementPage() {
   const [roleFilter, setRoleFilter] = useState("all")
   const [editUserDialogOpen, setEditUserDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+
+  const {users} = useUsers();
 
   // Filter users based on search term, status, and role
   const filteredUsers = users.filter((user) => {
@@ -274,7 +196,7 @@ export default function UserManagementPage() {
                         </TableRow>
                       ) : (
                         filteredUsers.map((user) => (
-                          <TableRow key={user.id}>
+                          <TableRow key={user._id}>
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8">
@@ -309,8 +231,8 @@ export default function UserManagementPage() {
                                 {user.status}
                               </Badge>
                             </TableCell>
-                            <TableCell>{user.joined}</TableCell>
-                            <TableCell>{user.uploads}</TableCell>
+                            <TableCell>{user.createdAt.split("T")[0]}</TableCell>
+                            <TableCell>{user.uploadedNotes.length}</TableCell>
                             <TableCell className="text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

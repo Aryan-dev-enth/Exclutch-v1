@@ -1,6 +1,6 @@
 'use client'
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Upload } from "lucide-react";
@@ -11,8 +11,10 @@ import { useNotes } from "@/context/NotesContext.js";
 
 export default function Home() {
   const { notes } = useNotes();
+  
   const [sortBy, setSortBy] = useState("trending");
 
+  
   // Memoize sorted notes to avoid mutating the original notes array
   const sortedNotes = useMemo(() => {
     const notesCopy = [...notes];

@@ -19,46 +19,12 @@ import {
   Megaphone,
 } from "lucide-react"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { useNotes } from "@/context/NotesContext"
+import { useUsers } from "@/context/UsersContext"
 
-// Mock data for pending approvals
-const pendingApprovals = [
-  {
-    id: 1,
-    title: "Advanced Database Management Systems",
-    subject: "Computer Science",
-    uploader: "Alex Johnson",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    date: "2 hours ago",
-    status: "pending",
-  },
-  {
-    id: 2,
-    title: "Modern Web Development Techniques",
-    subject: "Information Technology",
-    uploader: "Emma Davis",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    date: "5 hours ago",
-    status: "pending",
-  },
-  {
-    id: 3,
-    title: "Neural Networks and Deep Learning",
-    subject: "Artificial Intelligence",
-    uploader: "Michael Chen",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    date: "1 day ago",
-    status: "pending",
-  },
-  {
-    id: 4,
-    title: "Advanced Calculus: Integration Methods",
-    subject: "Mathematics",
-    uploader: "Sarah Williams",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    date: "1 day ago",
-    status: "pending",
-  },
-]
+
+
+
 
 // Mock data for exam alerts
 const examAlerts = [
@@ -89,45 +55,30 @@ const examAlerts = [
 ]
 
 // Mock data for recent users
-const recentUsers = [
-  {
-    id: 1,
-    name: "Jessica Brown",
-    email: "jessica.brown@example.com",
-    role: "User",
-    status: "Pending",
-    joined: "2 hours ago",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 2,
-    name: "Ryan Thomas",
-    email: "ryan.thomas@example.com",
-    role: "User",
-    status: "Active",
-    joined: "1 day ago",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 3,
-    name: "Sophia Martinez",
-    email: "sophia.martinez@example.com",
-    role: "User",
-    status: "Pending",
-    joined: "2 days ago",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-]
+
 
 export default function AdminDashboardPage() {
-  const [pendingList, setPendingList] = useState(pendingApprovals)
+
   const [alertsList, setAlertsList] = useState(examAlerts)
   const [newAlertTitle, setNewAlertTitle] = useState("")
   const [newAlertContent, setNewAlertContent] = useState("")
   const [newAlertDate, setNewAlertDate] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
 
+  const {notes}= useNotes();
+  const {users} =useUsers();
   // Handle approval
+
+  const recentUsers = users.slice(0,5);
+  const pendingApprovals = notes.filter(note => !note.verified);
+
+
+
+  const [pendingList, setPendingList] = useState(pendingApprovals)
+
+  
+
+
   const handleApprove = (id) => {
     setPendingList(pendingList.filter((item) => item.id !== id))
   }
@@ -184,7 +135,7 @@ export default function AdminDashboardPage() {
                 <FileText className="h-6 w-6" />
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold">1,234</p>
+                <p className="text-3xl font-bold">{notes.length}</p>
                 <p className="text-sm text-muted-foreground">Total Notes</p>
               </div>
             </CardContent>
@@ -195,7 +146,7 @@ export default function AdminDashboardPage() {
                 <Users className="h-6 w-6" />
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold">8,547</p>
+                <p className="text-3xl font-bold">{users.length}</p>
                 <p className="text-sm text-muted-foreground">Total Users</p>
               </div>
             </CardContent>
@@ -206,7 +157,7 @@ export default function AdminDashboardPage() {
                 <Download className="h-6 w-6" />
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold">45,621</p>
+                <p className="text-3xl font-bold">{notes.reduce((sum, note) => sum + (note.downloadsCount || 0), 0)}</p>
                 <p className="text-sm text-muted-foreground">Total Downloads</p>
               </div>
             </CardContent>
@@ -217,8 +168,8 @@ export default function AdminDashboardPage() {
                 <Upload className="h-6 w-6" />
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold">543</p>
-                <p className="text-sm text-muted-foreground">Pending Approvals</p>
+                <p className="text-3xl font-bold">{notes.reduce((sum, note) => sum + (note.viewCount || 0), 0)}</p>
+                <p className="text-sm text-muted-foreground">Total Views</p>
               </div>
             </CardContent>
           </Card>
@@ -290,7 +241,7 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pendingList.slice(0, 3).map((item) => (
+                {pendingApprovals && pendingApprovals.slice(0,4).map((item) => (
                   <div key={item.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">

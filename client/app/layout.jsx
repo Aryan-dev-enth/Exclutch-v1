@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/provider";
 import { AuthContextProvider } from "@/context/AuthContext";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
@@ -28,12 +28,7 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <Providers>
           <AuthContextProvider>
             <NotesProvider>
             <div className="flex min-h-screen flex-col overflow-x-hidden">
@@ -45,7 +40,7 @@ export default function RootLayout({ children }) {
             </div>
             </NotesProvider>
           </AuthContextProvider>
-        </ThemeProvider>
+          </Providers>
       </body>
     </html>
   );

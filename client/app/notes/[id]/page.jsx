@@ -28,11 +28,14 @@ import {
 import { format } from "timeago.js";
 import { fetchNoteById, likeNote, postComment } from "@/notes_api";
 import { UserAuth } from "@/context/AuthContext";
-import { getUserByUID } from "@/user_api";
+import { useNotes } from "@/context/NotesContext";
+
 
 export default function NoteDetailPage({ params }) {
   const { id } = use(params);
   const { user } = UserAuth();
+
+  const {notes} = useNotes();
   const [note, setNote] = useState(null);
   const [likeCount, setLikeCount] = useState(0)
   const [isLiked, setIsLiked] = useState(false);
@@ -45,38 +48,7 @@ export default function NoteDetailPage({ params }) {
 
 
 
-  const relatedNotes = [
-    {
-      id: 2,
-      title: "Memory Management in Operating Systems",
-      subject: "Computer Science",
-      uploader: "Emma Davis",
-      likes: 289,
-      views: 1823,
-      image: "/placeholder.png?height=220&width=360",
-      href: "/notes/2",
-    },
-    {
-      id: 3,
-      title: "Concurrency and Deadlocks",
-      subject: "Computer Science",
-      uploader: "Michael Chen",
-      likes: 276,
-      views: 1654,
-      image: "/placeholder.png?height=220&width=360",
-      href: "/notes/3",
-    },
-    {
-      id: 4,
-      title: "File Systems Implementation",
-      subject: "Computer Science",
-      uploader: "Sarah Williams",
-      likes: 245,
-      views: 5423,
-      image: "/placeholder.png?height=220&width=360",
-      href: "/notes/4",
-    },
-  ];
+  const relatedNotes = notes.slice(0,4)
 
   const handleLike = async () => {
     const response = await likeNote(user.uid, note._id)
@@ -102,13 +74,26 @@ export default function NoteDetailPage({ params }) {
   
   useEffect(() => {
     const fetchNote = async () => {
-      const result = await fetchNoteById(id);
-      const singlenote = result.data;
-      setNote(singlenote);
-      setLikeCount(singlenote.likes.length);
+      try {
+        const result = await fetchNoteById(id);
+        const singlenote = result.data;
+        setNote(singlenote);
+        setLikeCount(singlenote.likes.length)
+        const savedUser = JSON.parse(localStorage.getItem("user"));
+  
+        if (savedUser && singlenote.likes.includes(savedUser._id)) {
+          setIsLiked(true);
+        }
+      } catch (error) {
+        console.error("Error fetching note:", error);
+      }
     };
-    fetchNote();
-  }, []);
+  
+    if (id) {
+      fetchNote();
+    }
+  }, [id]);  // Add `id` as a dependency
+  
 
   if(!user || !note)
   {
@@ -325,8 +310,8 @@ export default function NoteDetailPage({ params }) {
               <CardTitle>Related Notes</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {relatedNotes.map((relatedNote) => (
-                <div key={relatedNote.id} className="flex gap-3">
+              {relatedNotes.map((relatedNote, index) => (
+                <div key={relatedNote._id} className="flex gap-3">
                   <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md">
                     <img
                       src={relatedNote.image || "/placeholder.png"}
@@ -336,7 +321,7 @@ export default function NoteDetailPage({ params }) {
                   </div>
                   <div>
                     <Link
-                      href={relatedNote.href}
+                      href={`/notes/${relatedNote._id}`}
                       className="line-clamp-2 font-medium hover:text-brand"
                     >
                       {relatedNote.title}

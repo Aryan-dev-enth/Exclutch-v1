@@ -38,117 +38,13 @@ import {
   XCircle,
 } from "lucide-react"
 import { AdminSidebar } from "@/components/admin-sidebar"
+import { useNotes } from "@/context/NotesContext"
 
 // Mock data for notes
-const notes = [
-  {
-    id: 1,
-    title: "Operating Systems: Process Scheduling Algorithms",
-    subject: "Computer Science",
-    uploader: "Alex Johnson",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    status: "approved",
-    date: "July 15, 2023",
-    views: 2897,
-    downloads: 543,
-    likes: 354,
-    featured: true,
-  },
-  {
-    id: 2,
-    title: "Organic Chemistry: Reaction Mechanisms",
-    subject: "Chemistry",
-    uploader: "Emma Davis",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    status: "approved",
-    date: "August 5, 2023",
-    views: 1823,
-    downloads: 421,
-    likes: 289,
-    featured: false,
-  },
-  {
-    id: 3,
-    title: "Advanced Calculus: Integration Techniques",
-    subject: "Mathematics",
-    uploader: "Michael Chen",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    status: "approved",
-    date: "August 12, 2023",
-    views: 1654,
-    downloads: 387,
-    likes: 276,
-    featured: false,
-  },
-  {
-    id: 4,
-    title: "Introduction to Machine Learning",
-    subject: "Computer Science",
-    uploader: "Sarah Williams",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    status: "approved",
-    date: "September 3, 2023",
-    views: 5423,
-    downloads: 892,
-    likes: 423,
-    featured: true,
-  },
-  {
-    id: 5,
-    title: "Quantum Mechanics Fundamentals",
-    subject: "Physics",
-    uploader: "James Lee",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    status: "approved",
-    date: "September 18, 2023",
-    views: 4721,
-    downloads: 756,
-    likes: 354,
-    featured: false,
-  },
-  {
-    id: 6,
-    title: "Advanced Database Management Systems",
-    subject: "Computer Science",
-    uploader: "Alex Johnson",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    status: "pending",
-    date: "October 5, 2023",
-    views: 0,
-    downloads: 0,
-    likes: 0,
-    featured: false,
-  },
-  {
-    id: 7,
-    title: "Modern Web Development Techniques",
-    subject: "Information Technology",
-    uploader: "Emma Davis",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    status: "pending",
-    date: "October 8, 2023",
-    views: 0,
-    downloads: 0,
-    likes: 0,
-    featured: false,
-  },
-  {
-    id: 8,
-    title: "Introduction to Psychology",
-    subject: "Psychology",
-    uploader: "Ryan Thomas",
-    uploaderAvatar: "/placeholder.svg?height=40&width=40",
-    status: "rejected",
-    date: "September 25, 2023",
-    views: 0,
-    downloads: 0,
-    likes: 0,
-    featured: false,
-  },
-]
+
 
 // Mock data for featured notes
-const featuredNotes = notes.filter((note) => note.featured)
+
 
 // Mock data for trending notes
 const trendingNotes = [
@@ -186,8 +82,9 @@ export default function NotesManagementPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [subjectFilter, setSubjectFilter] = useState("all")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [selectedNote, setSelectedNote] = useState(null)
-
+  const [selectedNote, setSelectedNote] = useState(null);
+  const {notes} = useNotes();
+  const featuredNotes = notes.filter((note) => note.featured)
   // Filter notes based on search term, status, and subject
   const filteredNotes = notes.filter((note) => {
     const matchesSearch =
@@ -269,7 +166,7 @@ export default function NotesManagementPage() {
                     </Button>
                   </div>
 
-                  <div className="flex gap-2">
+                  {/* <div className="flex gap-2">
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
                       <SelectTrigger className="w-[130px]">
                         <SelectValue placeholder="Status" />
@@ -295,7 +192,7 @@ export default function NotesManagementPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="rounded-md border">
@@ -328,31 +225,29 @@ export default function NotesManagementPage() {
                             <TableCell>{note.subject}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline">{note.uploader}</Badge>
+                                <Badge variant="outline">{note.author}</Badge>
                               </div>
                             </TableCell>
                             <TableCell>
                               <Badge
                                 variant="outline"
                                 className={
-                                  note.status === "approved"
+                                  note.verified
                                     ? "border-green-500 text-green-500"
-                                    : note.status === "pending"
-                                      ? "border-yellow-500 text-yellow-500"
                                       : "border-red-500 text-red-500"
                                 }
                               >
-                                {note.status.charAt(0).toUpperCase() + note.status.slice(1)}
+                                {note.verified? "Verified": "Not Verified"}
                               </Badge>
                             </TableCell>
                             <TableCell>{note.date}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <span>{note.views} views</span>
+                                <span>{note.viewCount} views</span>
                                 <span>•</span>
-                                <span>{note.downloads} downloads</span>
+                                <span>{note.downloadsCount} downloads</span>
                                 <span>•</span>
-                                <span>{note.likes} likes</span>
+                                <span>{note.likes.length} likes</span>
                               </div>
                             </TableCell>
                             <TableCell className="text-right">

@@ -1,9 +1,12 @@
 import axios from "axios";
 
-export const getAllNotes = async () => {
-    const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}${process.env.NEXT_PUBLIC_API_ALL_NOTES}`
-    );
+export const getAllNotes = async (userId) => {
+
+  const response = await axios.get(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/${userId} `,
+    
+);
+    
     if(response.status==200)
     {
         return response.data;
@@ -30,7 +33,7 @@ export const fetchNoteById = async (noteId) => {
         const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/${noteId}/comment`,
             {userId, text}
         );
-        console.log(noteId)
+        
         if(response.status==200)
           {
               return response.data;
@@ -47,7 +50,7 @@ export const fetchNoteById = async (noteId) => {
         const response = await axios.put(`${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/${noteId}/like`,
             {userId}
         );
-        console.log(noteId)
+        
         if(response.status==200)
           {
               return response.data;

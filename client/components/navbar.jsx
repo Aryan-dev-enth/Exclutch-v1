@@ -21,7 +21,7 @@ import { getUserByUID } from "@/user_api";
 export function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user, googleSignIn, logout } = UserAuth();
+  const { user, googleSignIn, logout, setSavedUser } = UserAuth();
 
  
   
@@ -30,7 +30,9 @@ export function Navbar() {
         if (user) {
             try {
                 const response = await getUserByUID(user.uid);
-                localStorage.setItem("_id", response.data._id)
+                localStorage.setItem("user", JSON.stringify(response.data));
+
+                setSavedUser(response.data)
             } catch (error) {
                 console.error("Error fetching user:", error);
             }
@@ -98,7 +100,7 @@ export function Navbar() {
             className="hidden md:flex"
             asChild
           >
-            <Link href="/search">
+            <Link href="/notes">
               <Search className="h-5 w-5" />
               <span className="sr-only">Search</span>
             </Link>
@@ -144,12 +146,8 @@ export function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard">Dashboard</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings">Settings</Link>
-                  </DropdownMenuItem>
+                  
+                  
                   <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

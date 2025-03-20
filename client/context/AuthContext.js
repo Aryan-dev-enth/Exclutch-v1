@@ -9,28 +9,44 @@ import {
 import { auth } from "../firebase.js";
 import { registerUserToMongo } from "@/user_api.js";
 
-
-const AuthContext = createContext();
+const AuthContext = createContext({
+  user: null,
+  googleSignIn: async () => {},
+  logout: async () => {}
+});
 
 export const AuthContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [savedUser, setSavedUser] = useState(null);
     
-
     const googleSignIn = async () => {
-        const provider = new GoogleAuthProvider();
-        const response= await signInWithPopup(auth, provider);
+        try {
+            const provider = new GoogleAuthProvider();
+            const response = await signInWithPopup(auth, provider);
+            const { uid, displayName, email, photoURL } = response.user;
+            
+            // Register user in MongoDB
+            const mongoResp = await registerUserToMongo(uid, displayName, email, photoURL);
+            setSavedUser(mongoResp.data);
+            localStorage.setItem("user", JSON.stringify(mongoResp.data));
 
-        const user = response.user;
+            if (!mongoResp || mongoResp.error) {
+                console.error("MongoDB registration failed:", mongoResp?.error);
+            }
 
-        const  mongo_resp= await registerUserToMongo(user.uid, user.displayName, user.email, user.photoURL);
-        
-        
-        
-    }
+        } catch (error) {
+            console.error("Google sign-in failed:", error.message);
+        }
+    };
 
-    const logout = () => {
-        return signOut(auth);
-    }
+    const logout = async () => {
+        try {
+            await signOut(auth);
+            setUser(null);
+        } catch (error) {
+            console.error("Logout failed:", error.message);
+        }
+    };
 
     useEffect(() => {
         if (auth) {
@@ -41,11 +57,17 @@ export const AuthContextProvider = ({ children }) => {
         }
     }, []);
     
-   
-
-    return <AuthContext.Provider value={{user, googleSignIn, logout}}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={{ user, googleSignIn, logout, savedUser, setSavedUser }}>
+            {children}
+        </AuthContext.Provider>
+    );
 };
 
 export const UserAuth = () => {
-    return useContext(AuthContext);
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("UserAuth must be used within an AuthContextProvider");
+    }
+    return context;
 };

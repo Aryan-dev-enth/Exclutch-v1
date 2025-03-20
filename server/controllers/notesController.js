@@ -38,12 +38,35 @@ class NotesController {
     // ✅ Get All Notes (Public)
     static getAllNotes = async (req, res) => {
         try {
-            const notes = await Note.find().populate("author", "name email profilePic");
+            const { userId } = req.params;
+            
+    
+            if (!userId) {
+                return res.status(400).json({ error: "User ID is required" });
+            }
+    
+            // Fetch user role from database
+            const user = await User.findById(userId);
+            
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
+    
+            let notes;
+            if (user.role === "admin") {
+                // Admin can see all notes
+                notes = await Note.find().populate("author", "name email profilePic");
+            } else {
+                // Non-admin users can only see verified notes
+                notes = await Note.find({ verified: true }).populate("author", "name email profilePic");
+            }
+    
             res.json({ message: "Notes retrieved successfully", data: notes });
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
     };
+    
 
     // ✅ Get Single Note (Public, Increases View Count)
     static getNoteById = async (req, res) => {
