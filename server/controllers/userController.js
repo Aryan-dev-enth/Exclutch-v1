@@ -9,7 +9,6 @@ class UserController {
     static register = async (req, res) => {
         try {
             const { uid, name, email, profilePic } = req.body;
-            console.log(req.body);
             const userFound = await User.findOne({ uid });
 
             if (userFound) {

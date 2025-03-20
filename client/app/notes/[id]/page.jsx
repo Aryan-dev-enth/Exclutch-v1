@@ -90,7 +90,7 @@ export default function NoteDetailPage({ params }) {
 
   const handleComment = async () => {
     if (comment.trim() === "") return;
-    awaitpostComment(comment.trim(), user.uid, id);
+    await postComment(comment.trim(), user.uid, id);
     setComment("");
   };
 
