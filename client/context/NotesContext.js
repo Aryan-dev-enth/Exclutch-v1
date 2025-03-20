@@ -25,7 +25,7 @@ export const NotesProvider = ({ children }) => {
   }, []);
 
   return (
-    <NotesContext.Provider value={{ notes, loading, error, fetchNotes }}>
+    <NotesContext.Provider value={{ notes, loading, error }}>
       {children}
     </NotesContext.Provider>
   );

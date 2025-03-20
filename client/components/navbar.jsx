@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { navLinks } from "@/constant";
 
 import { UserAuth } from "@/context/AuthContext";
+import { getUserByUID } from "@/user_api";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -23,8 +24,21 @@ export function Navbar() {
   const { user, googleSignIn, logout } = UserAuth();
 
  
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+        if (user) {
+            try {
+                const response = await getUserByUID(user.uid);
+                localStorage.setItem("_id", response.data._id)
+            } catch (error) {
+                console.error("Error fetching user:", error);
+            }
+        }
+    };
+    fetchUser();
+}, [user])
 
-  // Track scroll position for navbar styling
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {

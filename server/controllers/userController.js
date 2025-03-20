@@ -13,7 +13,9 @@ class UserController {
             const userFound = await User.findOne({ uid });
 
             if (userFound) {
-                return res.status(422).json({ error: "User already exists!" });
+                return res.json({ message: "User already exists!",
+                    data: userFound
+                 });
             }
 
             const newUser = new User({

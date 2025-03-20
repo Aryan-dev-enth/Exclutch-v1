@@ -1,61 +1,50 @@
-"use client"
+"use client";
 
-import { useState, use, useEffect } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
-import { BookmarkIcon, Calendar, Download, Eye, MessageSquare, Share2, ThumbsUp } from "lucide-react"
-import { fetchNoteById } from "@/notes_api"
+import { useState, use, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  BookmarkIcon,
+  Calendar,
+  Download,
+  Eye,
+  MessageSquare,
+  Share2,
+  ThumbsUp,
+} from "lucide-react";
+import { format } from "timeago.js";
+import { fetchNoteById, likeNote, postComment } from "@/notes_api";
+import { UserAuth } from "@/context/AuthContext";
+import { getUserByUID } from "@/user_api";
 
 export default function NoteDetailPage({ params }) {
-   const {id} = use(params);
-   const [note, setNote] = useState(null)
- 
-  useEffect(()=>{
-    const fetchNote = async()=>{
-      const result = await fetchNoteById(id);
-     
-  const singlenote = result.data;
- 
-  setNote(singlenote)
-  console.log(singlenote)
- 
-    }
-    fetchNote();
-  }, [])
+  const { id } = use(params);
+  const { user } = UserAuth();
+  const [note, setNote] = useState(null);
+  const [likeCount, setLikeCount] = useState(0)
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [comment, setComment] = useState("");
 
-  const [isLiked, setIsLiked] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
+ 
 
-  // Mock note data based on ID
-  // const note = {
-  //   id: id,
-  //   title: "Operating Systems: Process Scheduling Algorithms",
-  //   subject: "Computer Science",
-  //   description:
-  //     "Comprehensive notes on process scheduling algorithms including FCFS, SJF, Priority Scheduling, and Round Robin. Includes examples, comparisons, and implementation details.",
-  //   uploader: "Alex Johnson",
-  //   uploaderAvatar: "/placeholder.png?height=40&width=40",
-  //   likes: likeCount,
-  //   views: 2897,
-  //   comments: 42,
-  //   date: "August 12, 2023",
-  //   pdfUrl: "#",
-  //   semester: "5th",
-  //   branch: "Computer Science",
-  //   university: "MIT",
-  //   subjectCode: "CS601",
-  //   content:
-  //     "This PDF contains detailed explanations of various process scheduling algorithms used in operating systems, with practical examples and performance comparisons.",
-  //   tags: ["Operating Systems", "Process Scheduling", "Algorithms", "Computer Science"],
-  // }
+ 
 
-  // Mock related notes
+
+
   const relatedNotes = [
     {
       id: 2,
@@ -87,34 +76,56 @@ export default function NoteDetailPage({ params }) {
       image: "/placeholder.png?height=220&width=360",
       href: "/notes/4",
     },
-  ]
+  ];
 
-  // Handle like
-  // const handleLike = () => {
-  //   if (isLiked) {
-  //     setLikeCount((prev) => prev - 1)
-  //   } else {
-  //     setLikeCount((prev) => prev + 1)
-  //   }
-  //   setIsLiked((prev) => !prev)
-  // }
+  const handleLike = async () => {
+    const response = await likeNote(user.uid, note._id)
+    if (isLiked) {
+      setLikeCount((prev) => prev - 1)
+    } else {
+      setLikeCount((prev) => prev + 1)
+    }
+    setIsLiked((prev) => !prev)
+  }
+
+  const handleComment = async () => {
+    if (comment.trim() === "") return;
+    awaitpostComment(comment.trim(), user.uid, id);
+    setComment("");
+  };
 
   // Handle save
   const handleSave = () => {
-    setIsSaved((prev) => !prev)
-  }
+    setIsSaved((prev) => !prev);
+  };
 
-  if(!note){
+  
+  useEffect(() => {
+    const fetchNote = async () => {
+      const result = await fetchNoteById(id);
+      const singlenote = result.data;
+      setNote(singlenote);
+      setLikeCount(singlenote.likes.length);
+    };
+    fetchNote();
+  }, []);
+
+  if(!user || !note)
+  {
     return <></>
   }
-   const note_url= `https://drive.google.com/file/d/${note.gapis_file_id}/`
+
+  const note_url = `https://drive.google.com/file/d/${note.gapis_file_id}/`;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-10">
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 ">
         <div className="lg:col-span-2">
           <div className="mb-6">
-            <Link href="/notes" className="text-muted-foreground hover:text-brand">
+            <Link
+              href="/notes"
+              className="text-muted-foreground hover:text-brand"
+            >
               ← Back to Notes
             </Link>
           </div>
@@ -127,7 +138,7 @@ export default function NoteDetailPage({ params }) {
                 </Badge>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>{note.published.split('T')[0]}</span>
+                  <span>{note.published.split("T")[0]}</span>
                 </div>
               </div>
               <CardTitle className="text-2xl">{note.title}</CardTitle>
@@ -212,18 +223,27 @@ export default function NoteDetailPage({ params }) {
             <CardFooter>
               <div className="flex flex-col items-start w-full sm:flex-row lg:items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm">
-                    <ThumbsUp className="mr-1 h-4 w-4" />
-                    Like ({note.likeCount})
-                  </Button>
+                <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleLike}
+      className={isLiked ? "text-blue-500" : "text-muted-foreground"}
+    >
+      <ThumbsUp className={`mr-1 h-4 w-4 ${isLiked ? "fill-blue-500" : ""}`} />
+      {isLiked ? "Liked" : "Like"} ({likeCount})
+    </Button>
                   <Button variant="ghost" size="sm">
                     <MessageSquare className="mr-1 h-4 w-4" />
-                    Comment ({note.comments})
+                    Comment ({note.comments.length})
                   </Button>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" onClick={handleSave}>
-                    <BookmarkIcon className={`mr-1 h-4 w-4 ${isSaved ? "fill-current text-brand" : ""}`} />
+                    <BookmarkIcon
+                      className={`mr-1 h-4 w-4 ${
+                        isSaved ? "fill-current text-brand" : ""
+                      }`}
+                    />
                     {isSaved ? "Saved" : "Save"}
                   </Button>
                   <Button variant="ghost" size="sm">
@@ -241,35 +261,57 @@ export default function NoteDetailPage({ params }) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {!note.comments?(
-                  <div className="flex gap-4">
-                  <Avatar>
-                    <AvatarImage src="/placeholder.png?height=40&width=40" />
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="mb-2 flex items-center gap-2">
-                      <span className="font-medium">John Doe</span>
-                      <span className="text-xs text-muted-foreground">2 days ago</span>
-                    </div>
-                    <p className="text-sm">
-                      These notes were extremely helpful for my exam preparation. Thanks for sharing!
-                    </p>
-                  </div>
-                </div>
-                ):(
-                  <></>
-                )}
+                {note.comments && note.comments.length > 0 ? (
+                  note.comments.map((comment, index) => (
+                    <div key={index} className="flex gap-4">
+                      <Avatar>
+                        <AvatarImage
+                          src={
+                            comment.user.profilePic ||
+                            "/placeholder.png?height=40&width=40"
+                          }
+                        />
+                        <AvatarFallback>
+                          {comment.user.profilePic ? comment.user.profilePic: "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="mb-2 flex items-center gap-2">
+                          <span className="font-medium">
+                            {comment.user.name || "Unknown User"}
+                          </span>
 
+                          <span className="text-xs text-muted-foreground">
+                            {comment.createdAt
+                              ? format(comment.createdAt)
+                              : "Just now"}
+                          </span>
+                        </div>
+                        <p className="text-sm">
+                          {comment.text || "No comment provided."}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No comments yet.
+                  </p>
+                )}
 
                 <Separator />
                 <div className="flex gap-4">
                   <Avatar>
-                    <AvatarFallback>You</AvatarFallback>
+                    <AvatarFallback>{'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <Textarea placeholder="Add a comment..." className="mb-2 resize-none" />
-                    <Button>Post Comment</Button>
+                    <Textarea
+                      placeholder="Add a comment..."
+                      className="mb-2 resize-none"
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                    />
+                    <Button onClick={handleComment}>Post Comment</Button>
                   </div>
                 </div>
               </div>
@@ -277,7 +319,7 @@ export default function NoteDetailPage({ params }) {
           </Card>
         </div>
 
-        <div className="">
+        {/* <div className="">
           <Card className="sticky top-20">
             <CardHeader>
               <CardTitle>Related Notes</CardTitle>
@@ -293,10 +335,15 @@ export default function NoteDetailPage({ params }) {
                     />
                   </div>
                   <div>
-                    <Link href={relatedNote.href} className="line-clamp-2 font-medium hover:text-brand">
+                    <Link
+                      href={relatedNote.href}
+                      className="line-clamp-2 font-medium hover:text-brand"
+                    >
                       {relatedNote.title}
                     </Link>
-                    <p className="mt-1 text-xs text-muted-foreground">{relatedNote.subject}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {relatedNote.subject}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -305,9 +352,8 @@ export default function NoteDetailPage({ params }) {
               </Button>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
       </div>
     </div>
-  )
+  );
 }
-

@@ -49,7 +49,12 @@ class NotesController {
     static getNoteById = async (req, res) => {
         try {
             const { noteId } = req.params;
-            const note = await Note.findById(noteId).populate("author", "name email profilePic");
+            const note = await Note.findById(noteId)
+            .populate("author", "name email profilePic") 
+            .populate({
+                path: "comments", 
+                populate: { path: "user", select: "name email profilePic" } 
+            });
 
             if (!note) return res.status(404).json({ error: "Note not found" });
 
@@ -57,7 +62,9 @@ class NotesController {
             note.viewCount += 1;
             await note.save();
 
+            
             res.json({ message: "Note retrieved successfully", data: note });
+
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
@@ -67,9 +74,9 @@ class NotesController {
     static approveNote = async (req, res) => {
         try {
             const { noteId } = req.params;
-            const { userRole } = req.body; // Ensure admin check
+            const { user } = req.body; // Ensure admin check
 
-            if (userRole !== "admin") return res.status(403).json({ error: "Unauthorized! Admin access required" });
+            if (user.role !== "admin") return res.status(403).json({ error: "Unauthorized! Admin access required" });
 
             const note = await Note.findByIdAndUpdate(noteId, { verified: true }, { new: true });
 
@@ -90,14 +97,15 @@ class NotesController {
             const note = await Note.findById(noteId);
             if (!note) return res.status(404).json({ error: "Note not found" });
 
-            const user = await User.findOne({ uid: userId });
+            const user = await User.findOne({uid: userId});
             if (!user) return res.status(404).json({ error: "User not found" });
 
             // Toggle Like/Unlike
-            if (note.likeCount.includes(user._id)) {
-                note.likeCount.pull(user._id);
+            if (note.likes.includes(user._id)) {
+                note.likes.pull(user._id);
             } else {
-                note.likeCount.push(user._id);
+                
+                note.likes.push(user._id);
             }
             await note.save();
 

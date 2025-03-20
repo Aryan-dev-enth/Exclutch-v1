@@ -14,18 +14,17 @@ const AuthContext = createContext();
 
 export const AuthContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    
 
-    
-    
     const googleSignIn = async () => {
         const provider = new GoogleAuthProvider();
         const response= await signInWithPopup(auth, provider);
 
         const user = response.user;
 
-        console.log(user);
         const  mongo_resp= await registerUserToMongo(user.uid, user.displayName, user.email, user.photoURL);
-        console.log(mongo_resp)
+        
+        
         
     }
 
@@ -34,7 +33,6 @@ export const AuthContextProvider = ({ children }) => {
     }
 
     useEffect(() => {
-        // Make sure auth is properly initialized before calling onAuthStateChanged
         if (auth) {
             const unsubscribe = firebaseAuthStateChanged(auth, (currentUser) => {
                 setUser(currentUser);
@@ -42,6 +40,8 @@ export const AuthContextProvider = ({ children }) => {
             return () => unsubscribe();
         }
     }, []);
+    
+   
 
     return <AuthContext.Provider value={{user, googleSignIn, logout}}>{children}</AuthContext.Provider>;
 };
