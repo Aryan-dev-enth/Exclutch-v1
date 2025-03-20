@@ -7,15 +7,26 @@ import {
   GoogleAuthProvider 
 } from "firebase/auth";
 import { auth } from "../firebase.js";
+import { registerUserToMongo } from "@/user_api.js";
+
 
 const AuthContext = createContext();
 
 export const AuthContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+
     
-    const googleSignIn = () => {
+    
+    const googleSignIn = async () => {
         const provider = new GoogleAuthProvider();
-        return signInWithPopup(auth, provider);
+        const response= await signInWithPopup(auth, provider);
+
+        const user = response.user;
+
+        console.log(user);
+        const  mongo_resp= await registerUserToMongo(user.uid, user.displayName, user.email, user.photoURL);
+        console.log(mongo_resp)
+        
     }
 
     const logout = () => {

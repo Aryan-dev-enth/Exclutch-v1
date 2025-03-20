@@ -1,27 +1,44 @@
-"use client"
-import Link from "next/link"
-import { Eye, Heart, Calendar } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import Image from "next/image"
+"use client";
+import Link from "next/link";
+import { Eye, Heart, Calendar } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Image from "next/image";
 
-
-
-export function TrendingNote({ title, subject, uploader, likes, views, image, href, badge, date }) {
+export function TrendingNote({
+  title,
+  subject,
+  uploader,
+  likes,
+  views,
+  image,
+  href,
+  badge,
+  date,
+}) {
+  console.log(title);
   return (
     <Card className="overflow-hidden note-card w-10/12 mx-auto lg:w-full ">
       <div className="relative">
         <div className="aspect-[16/9] overflow-hidden">
-          <Image
-            src={"/placeholder.png"}
-            alt={title}
-            className="mx-auto object-cover transition-transform duration-300 hover:scale-105"
+          <iframe
+            src={`${image}`}
+            className="mx-auto object-cover transition-transform duration-300 pointer-events-none"
             width={250}
             height={225}
           />
         </div>
         {badge && (
-          <Badge className="absolute right-2 top-2 bg-brand text-white hover:bg-brand-dark" variant="secondary">
+          <Badge
+            className="absolute right-2 top-2 bg-brand text-white hover:bg-brand-dark"
+            variant="secondary"
+          >
             {badge}
           </Badge>
         )}
@@ -50,12 +67,11 @@ export function TrendingNote({ title, subject, uploader, likes, views, image, hr
           {date && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
-              <span>{date}</span>
+              <span>{date.split('T')[0]}</span>
             </div>
           )}
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }
-

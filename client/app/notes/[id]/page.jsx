@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, use } from "react"
+import { useState, use, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,35 +10,50 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { BookmarkIcon, Calendar, Download, Eye, MessageSquare, Share2, ThumbsUp } from "lucide-react"
+import { fetchNoteById } from "@/notes_api"
 
 export default function NoteDetailPage({ params }) {
-    const {id} = use(params);
+   const {id} = use(params);
+   const [note, setNote] = useState(null)
+ 
+  useEffect(()=>{
+    const fetchNote = async()=>{
+      const result = await fetchNoteById(id);
+     
+  const singlenote = result.data;
+ 
+  setNote(singlenote)
+  console.log(singlenote)
+ 
+    }
+    fetchNote();
+  }, [])
+
   const [isLiked, setIsLiked] = useState(false)
-  const [likeCount, setLikeCount] = useState(354)
   const [isSaved, setIsSaved] = useState(false)
 
   // Mock note data based on ID
-  const note = {
-    id: id,
-    title: "Operating Systems: Process Scheduling Algorithms",
-    subject: "Computer Science",
-    description:
-      "Comprehensive notes on process scheduling algorithms including FCFS, SJF, Priority Scheduling, and Round Robin. Includes examples, comparisons, and implementation details.",
-    uploader: "Alex Johnson",
-    uploaderAvatar: "/placeholder.png?height=40&width=40",
-    likes: likeCount,
-    views: 2897,
-    comments: 42,
-    date: "August 12, 2023",
-    pdfUrl: "#",
-    semester: "5th",
-    branch: "Computer Science",
-    university: "MIT",
-    subjectCode: "CS601",
-    content:
-      "This PDF contains detailed explanations of various process scheduling algorithms used in operating systems, with practical examples and performance comparisons.",
-    tags: ["Operating Systems", "Process Scheduling", "Algorithms", "Computer Science"],
-  }
+  // const note = {
+  //   id: id,
+  //   title: "Operating Systems: Process Scheduling Algorithms",
+  //   subject: "Computer Science",
+  //   description:
+  //     "Comprehensive notes on process scheduling algorithms including FCFS, SJF, Priority Scheduling, and Round Robin. Includes examples, comparisons, and implementation details.",
+  //   uploader: "Alex Johnson",
+  //   uploaderAvatar: "/placeholder.png?height=40&width=40",
+  //   likes: likeCount,
+  //   views: 2897,
+  //   comments: 42,
+  //   date: "August 12, 2023",
+  //   pdfUrl: "#",
+  //   semester: "5th",
+  //   branch: "Computer Science",
+  //   university: "MIT",
+  //   subjectCode: "CS601",
+  //   content:
+  //     "This PDF contains detailed explanations of various process scheduling algorithms used in operating systems, with practical examples and performance comparisons.",
+  //   tags: ["Operating Systems", "Process Scheduling", "Algorithms", "Computer Science"],
+  // }
 
   // Mock related notes
   const relatedNotes = [
@@ -75,19 +90,24 @@ export default function NoteDetailPage({ params }) {
   ]
 
   // Handle like
-  const handleLike = () => {
-    if (isLiked) {
-      setLikeCount((prev) => prev - 1)
-    } else {
-      setLikeCount((prev) => prev + 1)
-    }
-    setIsLiked((prev) => !prev)
-  }
+  // const handleLike = () => {
+  //   if (isLiked) {
+  //     setLikeCount((prev) => prev - 1)
+  //   } else {
+  //     setLikeCount((prev) => prev + 1)
+  //   }
+  //   setIsLiked((prev) => !prev)
+  // }
 
   // Handle save
   const handleSave = () => {
     setIsSaved((prev) => !prev)
   }
+
+  if(!note){
+    return <></>
+  }
+   const note_url= `https://drive.google.com/file/d/${note.gapis_file_id}/`
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-10">
@@ -107,27 +127,27 @@ export default function NoteDetailPage({ params }) {
                 </Badge>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>{note.date}</span>
+                  <span>{note.published.split('T')[0]}</span>
                 </div>
               </div>
               <CardTitle className="text-2xl">{note.title}</CardTitle>
               <CardDescription>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
+                    {/* <Avatar className="h-6 w-6">
                       <AvatarImage src={note.uploaderAvatar} alt={note.uploader} />
                       <AvatarFallback>{note.uploader[0]}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">{note.uploader}</span>
+                    </Avatar> */}
+                    <span className="font-medium">{note.author}</span>
                   </div>
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Eye className="h-4 w-4" />
-                      <span>{note.views}</span>
+                      <span>{note.viewCount}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <MessageSquare className="h-4 w-4" />
-                      <span>{note.comments}</span>
+                      <span>{note.comments.length}</span>
                     </div>
                   </div>
                 </div>
@@ -139,14 +159,14 @@ export default function NoteDetailPage({ params }) {
                   <div className="flex items-center justify-between bg-muted/50 p-2">
                     <div className="text-sm font-medium">{note.title}.pdf</div>
                     <Button variant="ghost" size="icon" asChild>
-                      <Link href={note.pdfUrl} target="_blank">
+                      <Link href={`${note_url}download`} target="_blank">
                         <Download className="h-4 w-4" />
                       </Link>
                     </Button>
                   </div>
                   <div className="aspect-video bg-black">
                     <iframe
-                      src="https://docs.google.com/viewer?embedded=true&url=https://example.com/sample.pdf"
+                      src={`${note_url}preview`}
                       className="h-full w-full"
                       title="PDF Preview"
                     ></iframe>
@@ -166,15 +186,11 @@ export default function NoteDetailPage({ params }) {
                     <div className="space-y-2">
                       <div className="flex">
                         <span className="w-1/3 font-medium">University:</span>
-                        <span>{note.university}</span>
+                        <span>{note.college}</span>
                       </div>
                       <div className="flex">
                         <span className="w-1/3 font-medium">Branch:</span>
                         <span>{note.branch}</span>
-                      </div>
-                      <div className="flex">
-                        <span className="w-1/3 font-medium">Semester:</span>
-                        <span>{note.semester}</span>
                       </div>
                       <div className="flex">
                         <span className="w-1/3 font-medium">Subject Code:</span>
@@ -196,9 +212,9 @@ export default function NoteDetailPage({ params }) {
             <CardFooter>
               <div className="flex flex-col items-start w-full sm:flex-row lg:items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" className={isLiked ? "text-brand" : ""} onClick={handleLike}>
+                  <Button variant="ghost" size="sm">
                     <ThumbsUp className="mr-1 h-4 w-4" />
-                    Like ({likeCount})
+                    Like ({note.likeCount})
                   </Button>
                   <Button variant="ghost" size="sm">
                     <MessageSquare className="mr-1 h-4 w-4" />
@@ -221,11 +237,12 @@ export default function NoteDetailPage({ params }) {
 
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>Comments ({note.comments})</CardTitle>
+              <CardTitle>Comments ({note.comments.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex gap-4">
+                {!note.comments?(
+                  <div className="flex gap-4">
                   <Avatar>
                     <AvatarImage src="/placeholder.png?height=40&width=40" />
                     <AvatarFallback>JD</AvatarFallback>
@@ -240,21 +257,11 @@ export default function NoteDetailPage({ params }) {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <Avatar>
-                    <AvatarImage src="/placeholder.png?height=40&width=40" />
-                    <AvatarFallback>SM</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="mb-2 flex items-center gap-2">
-                      <span className="font-medium">Sarah Miller</span>
-                      <span className="text-xs text-muted-foreground">1 week ago</span>
-                    </div>
-                    <p className="text-sm">
-                      Could you also share some practice problems related to Round Robin scheduling?
-                    </p>
-                  </div>
-                </div>
+                ):(
+                  <></>
+                )}
+
+
                 <Separator />
                 <div className="flex gap-4">
                   <Avatar>

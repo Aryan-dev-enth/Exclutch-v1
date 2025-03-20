@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthContextProvider } from "@/context/AuthContext";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { NotesProvider } from "@/context/NotesContext";
 
 
 const geistSans = Geist({
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
           disableTransitionOnChange
         >
           <AuthContextProvider>
+            <NotesProvider>
             <div className="flex min-h-screen flex-col overflow-x-hidden">
               <Navbar />
               <main className="flex-1">
@@ -41,6 +43,7 @@ export default function RootLayout({ children }) {
               </main>
               <Footer />
             </div>
+            </NotesProvider>
           </AuthContextProvider>
         </ThemeProvider>
       </body>

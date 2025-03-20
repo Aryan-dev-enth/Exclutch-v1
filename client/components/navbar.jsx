@@ -22,7 +22,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, googleSignIn, logout } = UserAuth();
 
-  console.log(user);
+ 
 
   // Track scroll position for navbar styling
   useEffect(() => {
