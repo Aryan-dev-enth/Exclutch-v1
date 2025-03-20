@@ -259,12 +259,13 @@ export default function UploadPage() {
 
                   <div>
                     <label className="block text-sm font-medium mb-1" htmlFor="university">
-                      University
+                      Institute
                     </label>
                     <Input
                       id="university"
                       name="university"
-                      placeholder="e.g. MIT"
+                      placeholder="SRM University Delhi-NCR, Sonepat, Haryana"
+                      defaultValue="SRM University Delhi-NCR, Sonepat, Haryana"
                       value={formData.university}
                       onChange={handleChange}
                     />
