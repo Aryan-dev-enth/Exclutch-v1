@@ -12,7 +12,7 @@ export const getAllNotes = async () => {
 
 export const fetchNoteById = async (noteId) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/notes/${noteId}`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/${noteId}`);
       console.log(noteId)
       if(response.status==200)
         {
