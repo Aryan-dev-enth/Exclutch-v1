@@ -5,7 +5,7 @@ const router = express.Router();
 
 
 router.get("/test", NotesController.hello);
-router.post("/create", NotesController.createNote);
+router.post("/create/:userId", NotesController.createNote);
 router.get("/getAll/:userId", NotesController.getAllNotes);
 router.get("/:noteId", NotesController.getNoteById);
 router.put("/:noteId/approve", NotesController.approveNote);

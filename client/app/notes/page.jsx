@@ -376,7 +376,7 @@ export default function NotesPage() {
                 pinned={note.pinned}
                 trending={note.trending}
                 tags={note.tags}
-                image={`https://drive.google.com/file/d/${note.gapis_file_id}/preview`}
+                image={note?.url || `https://drive.google.com/file/d/${note.gapis_file_id}/preview`}
                 href={`/notes/${note._id}`}
                 documentType={note.document_type}
                 subjectCode={note.subject_code}

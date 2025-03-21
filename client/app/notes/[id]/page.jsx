@@ -100,7 +100,8 @@ export default function NoteDetailPage({ params }) {
     return <></>
   }
 
-  const note_url = `https://drive.google.com/file/d/${note.gapis_file_id}/`;
+  console.log(note.url)
+  const note_url =`https://drive.google.com/file/d/${note.gapis_file_id}/`;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-10">
@@ -162,7 +163,7 @@ export default function NoteDetailPage({ params }) {
                   </div>
                   <div className="aspect-video bg-black">
                     <iframe
-                      src={`${note_url}preview`}
+                      src={ note.url || `${note_url}preview`}
                       className="h-full w-full"
                       title="PDF Preview"
                     ></iframe>

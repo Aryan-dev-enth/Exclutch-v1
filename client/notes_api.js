@@ -1,5 +1,23 @@
 import axios from "axios";
 
+
+export const postNotes = async (formData, userId) => {
+  try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/create/${userId}`,
+          formData
+      );
+      
+      if(response.status==200)
+        {
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+      console.error("Error fetching note:", error);
+      return null;
+    }
+}
+
 export const getAllNotes = async (userId) => {
 
   const response = await axios.get(

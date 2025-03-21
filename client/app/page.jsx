@@ -100,7 +100,7 @@ export default function Home() {
                   title={note.title}
                   subject={note.subject}
                   uploader={note.author}
-                  likes={note.likeCount}
+                  likes={note.likes?.length}
                   views={note.viewCount}
                   image={`https://drive.google.com/file/d/${note.gapis_file_id}/preview#page=1`}
                   href={`/notes/${note._id}`}

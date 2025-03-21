@@ -11,22 +11,28 @@ class NotesController {
     // ✅ Create a Note (Authenticated users only)
     static createNote = async (req, res) => {
         try {
-            const { gapis_file_id, title, content, document_type, subject, subject_code, branch, college, authorId } = req.body;
+            const { supabase_path, url, title, content, document_type, subject, subject_code, branch, college} = req.body;
 
-            const user = await User.findOne({ uid: authorId });
+            const {userId} = req.params;
+            const user = await User.findOne({uid: userId});
             if (!user) return res.status(404).json({ error: "User not found" });
 
             const newNote = new Note({
-                gapis_file_id,
-                title,
-                content,
-                document_type,
+                supabase_path,
+                url,
+                title: title,
+                content: content,
+                document_type: document_type,
                 subject,
                 subject_code,
                 branch,
                 college,
                 author: user._id
             });
+
+            console.log(newNote)
+
+
 
             const savedNote = await newNote.save();
             res.status(201).json({ message: "Note uploaded successfully!", data: savedNote });

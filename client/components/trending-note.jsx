@@ -56,14 +56,15 @@ export function TrendingNote({
           <span className="font-medium text-sm">{uploader}</span>
         </div>
         <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1">
+            <Eye className="h-3.5 w-3.5" />
+            <span>{views}</span>
+          </div>
           <div className="flex items-center gap-1">
             <Heart className="h-3.5 w-3.5" />
             <span>{likes}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Eye className="h-3.5 w-3.5" />
-            <span>{views}</span>
-          </div>
+          
           {date && (
             <div className="flex items-center gap-1">
               <Calendar className="h-3.5 w-3.5" />
