@@ -192,8 +192,8 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentUsers.map((user) => (
-                  <div key={user.id} className="flex items-center justify-between">
+                {recentUsers.map((user, index) => (
+                  <div key={index} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={user.avatar} alt={user.name} />
@@ -283,8 +283,8 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {alertsList.slice(0, 3).map((alert) => (
-                  <div key={alert.id} className="flex items-center justify-between">
+                {alertsList.slice(0, 3).map((alert, index) => (
+                  <div key={index} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
                         <Bell className="h-5 w-5 text-muted-foreground" />

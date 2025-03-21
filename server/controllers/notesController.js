@@ -30,7 +30,6 @@ class NotesController {
                 author: user._id
             });
 
-            console.log(newNote)
 
 
 
@@ -103,7 +102,10 @@ class NotesController {
     static approveNote = async (req, res) => {
         try {
             const { noteId } = req.params;
-            const { user } = req.body; // Ensure admin check
+            const { userId } = req.body; 
+
+            const user = await User.findById(userId);
+            if(!user) return res.status(404).json({ error: "User not found" });
 
             if (user.role !== "admin") return res.status(403).json({ error: "Unauthorized! Admin access required" });
 
@@ -176,11 +178,16 @@ class NotesController {
     static deleteNote = async (req, res) => {
         try {
             const { noteId } = req.params;
-            const { userRole } = req.body; // Ensure admin check
+            const { userId } = req.body;
+            
+            
+            const user = await User.findById(userId);
+            if(!user) return res.status(404).json({ error: "User not found" });
 
-            if (userRole !== "admin") return res.status(403).json({ error: "Unauthorized! Admin access required" });
+            if (user.role !== "admin") return res.status(403).json({ error: "Unauthorized! Admin access required" });
 
             const note = await Note.findByIdAndDelete(noteId);
+            
 
             if (!note) return res.status(404).json({ error: "Note not found" });
 

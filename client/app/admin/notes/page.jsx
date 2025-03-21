@@ -24,6 +24,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   AlertCircle,
   CheckCircle,
@@ -39,12 +41,6 @@ import {
 } from "lucide-react"
 import { AdminSidebar } from "@/components/admin-sidebar"
 import { useNotes } from "@/context/NotesContext"
-
-// Mock data for notes
-
-
-// Mock data for featured notes
-
 
 // Mock data for trending notes
 const trendingNotes = [
@@ -82,21 +78,40 @@ export default function NotesManagementPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [subjectFilter, setSubjectFilter] = useState("all")
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [selectedNote, setSelectedNote] = useState(null);
-  const {notes} = useNotes();
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false)
+  const [selectedNote, setSelectedNote] = useState(null)
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
+  
+  const { notes } = useNotes()
   const featuredNotes = notes.filter((note) => note.featured)
+  
   // Filter notes based on search term, status, and subject
   const filteredNotes = notes.filter((note) => {
     const matchesSearch =
       note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
       note.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      note.uploader.toLowerCase().includes(searchTerm.toLowerCase())
+      note.uploader?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      note.author?.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesStatus = statusFilter === "all" || note.status === statusFilter
+    const matchesStatus = statusFilter === "all" || 
+      (statusFilter === "verified" && note.verified) || 
+      (statusFilter === "not-verified" && !note.verified)
+      
     const matchesSubject = subjectFilter === "all" || note.subject === subjectFilter
 
     return matchesSearch && matchesStatus && matchesSubject
   })
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredNotes.length / itemsPerPage)
+  const paginatedNotes = filteredNotes.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   // Get unique subjects for filter
   const subjects = Array.from(new Set(notes.map((note) => note.subject)))
@@ -107,6 +122,12 @@ export default function NotesManagementPage() {
     setDeleteDialogOpen(true)
   }
 
+  // Handle note update
+  const handleUpdateNote = (note) => {
+    setSelectedNote(note)
+    setUpdateDialogOpen(true)
+  }
+
   // Confirm note deletion
   const confirmDelete = () => {
     // In a real application, this would make an API call to delete the note
@@ -114,10 +135,30 @@ export default function NotesManagementPage() {
     setDeleteDialogOpen(false)
   }
 
+  // Confirm note update
+  const confirmUpdate = () => {
+    // In a real application, this would make an API call to update the note
+    alert(`Note "${selectedNote?.title}" has been updated.`)
+    setUpdateDialogOpen(false)
+  }
+
   // Toggle featured status
   const toggleFeatured = (id) => {
     // In a real application, this would make an API call to update the note
     alert(`Featured status toggled for note ID: ${id}`)
+  }
+
+  // Pagination controls
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
   }
 
   return (
@@ -156,43 +197,8 @@ export default function NotesManagementPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
-                    <Button variant="outline" size="icon">
-                      <Filter className="h-4 w-4" />
-                      <span className="sr-only">Filter</span>
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <Download className="h-4 w-4" />
-                      <span className="sr-only">Download</span>
-                    </Button>
+                    
                   </div>
-
-                  {/* <div className="flex gap-2">
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-[130px]">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="approved">Approved</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Subject" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Subjects</SelectItem>
-                        {subjects.map((subject, index) => (
-                          <SelectItem key={index} value={subject}>
-                            {subject}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div> */}
                 </div>
 
                 <div className="rounded-md border">
@@ -203,21 +209,20 @@ export default function NotesManagementPage() {
                         <TableHead>Subject</TableHead>
                         <TableHead>Uploader</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
                         <TableHead>Stats</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredNotes.length === 0 ? (
+                      {paginatedNotes.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="h-24 text-center">
+                          <TableCell colSpan={6} className="h-24 text-center">
                             No notes found.
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredNotes.map((note) => (
-                          <TableRow key={note.id}>
+                        paginatedNotes.map((note, index) => (
+                          <TableRow key={index}>
                             <TableCell>
                               <div className="font-medium">{note.title}</div>
                               {note.featured && <Badge className="mt-1 bg-brand text-white">Featured</Badge>}
@@ -225,7 +230,7 @@ export default function NotesManagementPage() {
                             <TableCell>{note.subject}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline">{note.author}</Badge>
+                                <Badge variant="outline">{note.author || note.uploader}</Badge>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -234,20 +239,19 @@ export default function NotesManagementPage() {
                                 className={
                                   note.verified
                                     ? "border-green-500 text-green-500"
-                                      : "border-red-500 text-red-500"
+                                    : "border-red-500 text-red-500"
                                 }
                               >
-                                {note.verified? "Verified": "Not Verified"}
+                                {note.verified ? "Verified" : "Not Verified"}
                               </Badge>
                             </TableCell>
-                            <TableCell>{note.date}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <span>{note.viewCount} views</span>
+                                <span>{note.viewCount || 0} views</span>
                                 <span>•</span>
-                                <span>{note.downloadsCount} downloads</span>
+                                <span>{note.downloadsCount || 0} downloads</span>
                                 <span>•</span>
-                                <span>{note.likes.length} likes</span>
+                                <span>{(note.likes?.length || 0)} likes</span>
                               </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -265,11 +269,9 @@ export default function NotesManagementPage() {
                                       View Details
                                     </Link>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link href={`/admin/notes/${note.id}/edit`}>
-                                      <Edit className="mr-2 h-4 w-4" />
-                                      Edit
-                                    </Link>
+                                  <DropdownMenuItem onClick={() => handleUpdateNote(note)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => toggleFeatured(note.id)}>
                                     {note.featured ? (
@@ -301,13 +303,28 @@ export default function NotesManagementPage() {
 
                 <div className="mt-4 flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
-                    Showing <strong>{filteredNotes.length}</strong> of <strong>{notes.length}</strong> notes
+                    Showing <strong>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredNotes.length)}-{Math.min(currentPage * itemsPerPage, filteredNotes.length)}</strong> of <strong>{filteredNotes.length}</strong> notes
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" disabled>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={goToPreviousPage} 
+                      disabled={currentPage === 1}
+                    >
                       Previous
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <div className="flex items-center gap-1 px-2">
+                      <span className="text-sm font-medium">{currentPage}</span>
+                      <span className="text-sm text-muted-foreground">of</span>
+                      <span className="text-sm font-medium">{totalPages || 1}</span>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={goToNextPage} 
+                      disabled={currentPage >= totalPages}
+                    >
                       Next
                     </Button>
                   </div>
@@ -333,8 +350,8 @@ export default function NotesManagementPage() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {featuredNotes.map((note) => (
-                      <div key={note.id} className="flex items-center justify-between rounded-lg border p-4">
+                    {featuredNotes.map((note, index) => (
+                      <div key={index} className="flex items-center justify-between rounded-lg border p-4">
                         <div className="flex items-center gap-4">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand/10">
                             <FileText className="h-6 w-6 text-brand" />
@@ -344,9 +361,9 @@ export default function NotesManagementPage() {
                             <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                               <Badge variant="outline">{note.subject}</Badge>
                               <span>•</span>
-                              <span>{note.uploader}</span>
+                              <span>{note.author || note.uploader}</span>
                               <span>•</span>
-                              <span>{note.views} views</span>
+                              <span>{note.viewCount || 0} views</span>
                             </div>
                           </div>
                         </div>
@@ -379,7 +396,7 @@ export default function NotesManagementPage() {
               <CardContent>
                 <div className="space-y-4">
                   {trendingNotes.map((note, index) => (
-                    <div key={note.id} className="flex items-center justify-between rounded-lg border p-4">
+                    <div key={index} className="flex items-center justify-between rounded-lg border p-4">
                       <div className="flex items-center gap-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted font-medium">
                           #{index + 1}
@@ -441,9 +458,7 @@ export default function NotesManagementPage() {
                 <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                   <Badge variant="outline">{selectedNote.subject}</Badge>
                   <span>•</span>
-                  <span>Uploaded by {selectedNote.uploader}</span>
-                  <span>•</span>
-                  <span>{selectedNote.date}</span>
+                  <span>Uploaded by {selectedNote.author || selectedNote.uploader}</span>
                 </div>
               </div>
             </div>
@@ -459,7 +474,75 @@ export default function NotesManagementPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Update Note Dialog */}
+      <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Note</DialogTitle>
+            <DialogDescription>
+              Make changes to the note details below.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedNote && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <FormLabel htmlFor="title">Title</FormLabel>
+                <Input
+                  id="title"
+                  defaultValue={selectedNote.title}
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <FormLabel htmlFor="subject">Subject</FormLabel>
+                <Select defaultValue={selectedNote.subject}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map((subject, index) => (
+                      <SelectItem key={index} value={subject}>
+                        {subject}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="verified" 
+                  defaultChecked={selectedNote.verified} 
+                />
+                <FormLabel htmlFor="verified" className="cursor-pointer">
+                  Mark as verified
+                </FormLabel>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="featured" 
+                  defaultChecked={selectedNote.featured} 
+                />
+                <FormLabel htmlFor="featured" className="cursor-pointer">
+                  Feature on homepage
+                </FormLabel>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUpdateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmUpdate}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
-

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { removeFile } from "./components/utils/uploadToSupabase";
 
 
 export const postNotes = async (formData, userId) => {
@@ -78,4 +79,45 @@ export const fetchNoteById = async (noteId) => {
         console.error("Error fetching note:", error);
         return null;
       }
+  }
+
+  export const noteApproval = async (noteId, userId) => {
+    try {
+      const response = await axios.put(`${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/${noteId}/approve`,
+          {userId}
+      );
+      
+      if(response.status==200)
+        {
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+      console.error("Error fetching note:", error);
+      return null;
+    }
+  }
+
+  export const rejectNotes = async (note, userId) => {
+    try {
+      console.log(userId)
+      // const sb_deleted= await removeFile(note.supabase_path);
+      // console.log("deleted from supabase", sb_deleted)
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/${note._id}`,
+        {
+          data: { userId }, // ✅ Send userId in the request body
+        }
+      );
+      
+      
+      if(response.status==200)
+        {
+            return response.data;
+        }
+        return response.data;
+    } catch (error) {
+      console.error("Error fetching note:", error);
+      return null;
+    }
   }
