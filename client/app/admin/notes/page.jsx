@@ -1,18 +1,31 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -20,12 +33,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertCircle,
   CheckCircle,
@@ -38,9 +64,11 @@ import {
   Search,
   Trash2,
   XCircle,
-} from "lucide-react"
-import { AdminSidebar } from "@/components/admin-sidebar"
-import { useNotes } from "@/context/NotesContext"
+} from "lucide-react";
+import { AdminSidebar } from "@/components/admin-sidebar";
+import { useNotes } from "@/context/NotesContext";
+
+import { updateNote, rejectNotes } from "@/notes_api";// Ensure to import the updateNote function
 
 // Mock data for trending notes
 const trendingNotes = [
@@ -71,23 +99,23 @@ const trendingNotes = [
     downloads: 756,
     likes: 354,
   },
-]
+];
 
 export default function NotesManagementPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [subjectFilter, setSubjectFilter] = useState("all")
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [updateDialogOpen, setUpdateDialogOpen] = useState(false)
-  const [selectedNote, setSelectedNote] = useState(null)
-  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [subjectFilter, setSubjectFilter] = useState("all");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState(null);
+
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 5
-  
-  const { notes } = useNotes()
-  const featuredNotes = notes.filter((note) => note.featured)
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const { notes } = useNotes();
+  const featuredNotes = notes.filter((note) => note.featured);
+
   // Filter notes based on search term, status, and subject
   const filteredNotes = notes.filter((note) => {
     const matchesSearch =
@@ -95,71 +123,110 @@ export default function NotesManagementPage() {
       note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
       note.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
       note.uploader?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      note.author?.toLowerCase().includes(searchTerm.toLowerCase())
+      note.author?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || 
-      (statusFilter === "verified" && note.verified) || 
-      (statusFilter === "not-verified" && !note.verified)
-      
-    const matchesSubject = subjectFilter === "all" || note.subject === subjectFilter
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "verified" && note.verified) ||
+      (statusFilter === "not-verified" && !note.verified);
 
-    return matchesSearch && matchesStatus && matchesSubject
-  })
+    const matchesSubject =
+      subjectFilter === "all" || note.subject === subjectFilter;
+
+    return matchesSearch && matchesStatus && matchesSubject;
+  });
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredNotes.length / itemsPerPage)
+  const totalPages = Math.ceil(filteredNotes.length / itemsPerPage);
   const paginatedNotes = filteredNotes.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  )
+  );
 
   // Get unique subjects for filter
-  const subjects = Array.from(new Set(notes.map((note) => note.subject)))
+  const subjects = Array.from(new Set(notes.map((note) => note.subject)));
 
   // Handle note deletion
   const handleDeleteNote = (note) => {
-    setSelectedNote(note)
-    setDeleteDialogOpen(true)
-  }
+    setSelectedNote(note);
+    setDeleteDialogOpen(true);
+  };
 
   // Handle note update
   const handleUpdateNote = (note) => {
-    setSelectedNote(note)
-    setUpdateDialogOpen(true)
-  }
+
+    setSelectedNote(note);
+    setUpdateDialogOpen(true);
+    console.log(selectedNote)
+  };
 
   // Confirm note deletion
-  const confirmDelete = () => {
-    // In a real application, this would make an API call to delete the note
-    alert(`Note "${selectedNote?.title}" has been deleted.`)
-    setDeleteDialogOpen(false)
-  }
+  const confirmDelete = async () => {
+    const response= await rejectNotes(selectedNote,  JSON.parse(localStorage.getItem("user"))._id )
+    alert(`Note "${selectedNote?.title}" has been deleted.`);
+    setDeleteDialogOpen(false);
+  };
 
-  // Confirm note update
-  const confirmUpdate = () => {
-    // In a real application, this would make an API call to update the note
-    alert(`Note "${selectedNote?.title}" has been updated.`)
-    setUpdateDialogOpen(false)
-  }
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setSelectedNote((prevData) => ({
+      ...prevData,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  
+
+  const confirmUpdate = async () => {
+    try {
+      
+      const updatedNoteData = {
+        title: selectedNote.title,
+        content: selectedNote.content, // Example updated field (you can adjust this)
+        document_type: selectedNote.document_type,
+        subject: selectedNote.subject,
+        subject_code: selectedNote.subject_code,
+        branch: selectedNote.branch,
+        college: selectedNote.college,
+      };
+
+      console.log(updatedNoteData);
+      console.log(selectedNote)
+  
+      // Assuming you have an API method `updateNote` for updating the note
+      const result = await updateNote(selectedNote?._id, updatedNoteData, JSON.parse(localStorage.getItem("user"))._id); // Pass userId of admin
+  
+      if (result) {
+        alert(`Note "${selectedNote.title}" has been updated.`);
+        setUpdateDialogOpen(false); // Close the dialog after update
+      } else {
+        alert("Failed to update the note.");
+      }
+    } catch (error) {
+      console.error("Error updating note:", error.message);
+      alert("An error occurred while updating the note.");
+    }
+  };
+  
 
   // Toggle featured status
   const toggleFeatured = (id) => {
     // In a real application, this would make an API call to update the note
-    alert(`Featured status toggled for note ID: ${id}`)
-  }
+    alert(`Featured status toggled for note ID: ${id}`);
+  };
 
   // Pagination controls
   const goToNextPage = () => {
     if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1)
+      setCurrentPage(currentPage + 1);
     }
-  }
+  };
 
   const goToPreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(currentPage - 1)
+      setCurrentPage(currentPage - 1);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -167,8 +234,12 @@ export default function NotesManagementPage() {
 
       <div className="flex-1 p-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Notes Management</h1>
-          <p className="text-muted-foreground">Manage all notes across the platform</p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Notes Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage all notes across the platform
+          </p>
         </div>
 
         <Tabs defaultValue="all-notes" className="space-y-6">
@@ -182,7 +253,9 @@ export default function NotesManagementPage() {
             <Card>
               <CardHeader>
                 <CardTitle>All Notes</CardTitle>
-                <CardDescription>View and manage all notes on the platform</CardDescription>
+                <CardDescription>
+                  View and manage all notes on the platform
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -197,7 +270,6 @@ export default function NotesManagementPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
-                    
                   </div>
                 </div>
 
@@ -225,12 +297,18 @@ export default function NotesManagementPage() {
                           <TableRow key={index}>
                             <TableCell>
                               <div className="font-medium">{note.title}</div>
-                              {note.featured && <Badge className="mt-1 bg-brand text-white">Featured</Badge>}
+                              {note.featured && (
+                                <Badge className="mt-1 bg-brand text-white">
+                                  Featured
+                                </Badge>
+                              )}
                             </TableCell>
                             <TableCell>{note.subject}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline">{note.author || note.uploader}</Badge>
+                                <Badge variant="outline">
+                                  {note.author || note.uploader}
+                                </Badge>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -249,9 +327,11 @@ export default function NotesManagementPage() {
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 <span>{note.viewCount || 0} views</span>
                                 <span>•</span>
-                                <span>{note.downloadsCount || 0} downloads</span>
+                                <span>
+                                  {note.downloadsCount || 0} downloads
+                                </span>
                                 <span>•</span>
-                                <span>{(note.likes?.length || 0)} likes</span>
+                                <span>{note.likes?.length || 0} likes</span>
                               </div>
                             </TableCell>
                             <TableCell className="text-right">
@@ -269,11 +349,15 @@ export default function NotesManagementPage() {
                                       View Details
                                     </Link>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleUpdateNote(note)}>
+                                  <DropdownMenuItem
+                                    onClick={() => handleUpdateNote(note)}
+                                  >
                                     <Edit className="mr-2 h-4 w-4" />
                                     Edit
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => toggleFeatured(note.id)}>
+                                  <DropdownMenuItem
+                                    onClick={() => toggleFeatured(note.id)}
+                                  >
                                     {note.featured ? (
                                       <>
                                         <XCircle className="mr-2 h-4 w-4" />
@@ -287,7 +371,10 @@ export default function NotesManagementPage() {
                                     )}
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteNote(note)}>
+                                  <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() => handleDeleteNote(note)}
+                                  >
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Delete
                                   </DropdownMenuItem>
@@ -303,13 +390,25 @@ export default function NotesManagementPage() {
 
                 <div className="mt-4 flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
-                    Showing <strong>{Math.min((currentPage - 1) * itemsPerPage + 1, filteredNotes.length)}-{Math.min(currentPage * itemsPerPage, filteredNotes.length)}</strong> of <strong>{filteredNotes.length}</strong> notes
+                    Showing{" "}
+                    <strong>
+                      {Math.min(
+                        (currentPage - 1) * itemsPerPage + 1,
+                        filteredNotes.length
+                      )}
+                      -
+                      {Math.min(
+                        currentPage * itemsPerPage,
+                        filteredNotes.length
+                      )}
+                    </strong>{" "}
+                    of <strong>{filteredNotes.length}</strong> notes
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={goToPreviousPage} 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToPreviousPage}
                       disabled={currentPage === 1}
                     >
                       Previous
@@ -317,12 +416,14 @@ export default function NotesManagementPage() {
                     <div className="flex items-center gap-1 px-2">
                       <span className="text-sm font-medium">{currentPage}</span>
                       <span className="text-sm text-muted-foreground">of</span>
-                      <span className="text-sm font-medium">{totalPages || 1}</span>
+                      <span className="text-sm font-medium">
+                        {totalPages || 1}
+                      </span>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={goToNextPage} 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToNextPage}
                       disabled={currentPage >= totalPages}
                     >
                       Next
@@ -337,7 +438,9 @@ export default function NotesManagementPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Featured Notes</CardTitle>
-                <CardDescription>Notes that are featured on the homepage</CardDescription>
+                <CardDescription>
+                  Notes that are featured on the homepage
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {featuredNotes.length === 0 ? (
@@ -345,13 +448,17 @@ export default function NotesManagementPage() {
                     <AlertCircle className="mb-2 h-10 w-10 text-muted-foreground" />
                     <h3 className="text-lg font-medium">No featured notes</h3>
                     <p className="text-sm text-muted-foreground">
-                      You haven't featured any notes yet. Feature notes to highlight them on the homepage.
+                      You haven't featured any notes yet. Feature notes to
+                      highlight them on the homepage.
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {featuredNotes.map((note, index) => (
-                      <div key={index} className="flex items-center justify-between rounded-lg border p-4">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg border p-4"
+                      >
                         <div className="flex items-center gap-4">
                           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand/10">
                             <FileText className="h-6 w-6 text-brand" />
@@ -374,7 +481,11 @@ export default function NotesManagementPage() {
                               View
                             </Link>
                           </Button>
-                          <Button variant="outline" size="sm" onClick={() => toggleFeatured(note.id)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleFeatured(note.id)}
+                          >
                             <XCircle className="mr-1 h-4 w-4" />
                             Remove
                           </Button>
@@ -391,12 +502,17 @@ export default function NotesManagementPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Trending Notes</CardTitle>
-                <CardDescription>Most popular notes based on views, downloads, and likes</CardDescription>
+                <CardDescription>
+                  Most popular notes based on views, downloads, and likes
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {trendingNotes.map((note, index) => (
-                    <div key={index} className="flex items-center justify-between rounded-lg border p-4">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-lg border p-4"
+                    >
                       <div className="flex items-center gap-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted font-medium">
                           #{index + 1}
@@ -447,7 +563,8 @@ export default function NotesManagementPage() {
           <DialogHeader>
             <DialogTitle>Delete Note</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this note? This action cannot be undone.
+              Are you sure you want to delete this note? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
 
@@ -458,14 +575,19 @@ export default function NotesManagementPage() {
                 <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                   <Badge variant="outline">{selectedNote.subject}</Badge>
                   <span>•</span>
-                  <span>Uploaded by {selectedNote.author || selectedNote.uploader}</span>
+                  <span>
+                    Uploaded by {selectedNote.author || selectedNote.uploader}
+                  </span>
                 </div>
               </div>
             </div>
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
@@ -476,6 +598,7 @@ export default function NotesManagementPage() {
       </Dialog>
 
       {/* Update Note Dialog */}
+
       <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -484,65 +607,109 @@ export default function NotesManagementPage() {
               Make changes to the note details below.
             </DialogDescription>
           </DialogHeader>
-          
-          {selectedNote && (
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <FormLabel htmlFor="title">Title</FormLabel>
-                <Input
-                  id="title"
-                  defaultValue={selectedNote.title}
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <FormLabel htmlFor="subject">Subject</FormLabel>
-                <Select defaultValue={selectedNote.subject}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((subject, index) => (
-                      <SelectItem key={index} value={subject}>
-                        {subject}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="verified" 
-                  defaultChecked={selectedNote.verified} 
-                />
-                <FormLabel htmlFor="verified" className="cursor-pointer">
-                  Mark as verified
-                </FormLabel>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="featured" 
-                  defaultChecked={selectedNote.featured} 
-                />
-                <FormLabel htmlFor="featured" className="cursor-pointer">
-                  Feature on homepage
-                </FormLabel>
-              </div>
-            </div>
-          )}
+
+        {selectedNote && (
+            
+            <>
+            <div className="grid gap-2">
+            <label htmlFor="title">Title</label>
+            <input
+              type="text"
+              name="title"
+              id="title"
+              value={selectedNote.title}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded"
+            />
+          </div>
+    
+          <div className="grid gap-2">
+            <label htmlFor="subject">Subject</label>
+            <input
+              type="text"
+              name="subject"
+              id="subject"
+              value={selectedNote.subject}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded"
+            />
+          </div>
+    
+          <div className="grid gap-2">
+            <label htmlFor="subject_code">Subject Code</label>
+            <input
+              type="text"
+              name="subject_code"
+              id="subject_code"
+              value={selectedNote.subject_code}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded"
+            />
+          </div>
+    
+          <div className="grid gap-2">
+            <label htmlFor="document_type">Document Type</label>
+            <input
+              type="text"
+              name="document_type"
+              id="document_type"
+              value={selectedNote.document_type}
+              onChange={handleChange}
+              className="border px-3 py-2 rounded"
+            />
+          </div>
+    
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="verified"
+              name="verified"
+              checked={selectedNote.verified}
+              onChange={handleChange}
+            />
+            <label htmlFor="verified">Verified</label>
+          </div>
+    
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="pinned"
+              name="pinned"
+              checked={selectedNote.pinned}
+              onChange={handleChange}
+            />
+            <label htmlFor="pinned">Feature on homepage</label>
+          </div>
+    
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="trending"
+              name="trending"
+              checked={selectedNote.trending}
+              onChange={handleChange}
+            />
+            <label htmlFor="trending">Mark as trending</label>
+          </div>
+            </>
+        )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setUpdateDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setUpdateDialogOpen(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={confirmUpdate}>
-              Save Changes
-            </Button>
+            <Button onClick={confirmUpdate}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
+
+
+
+
+
