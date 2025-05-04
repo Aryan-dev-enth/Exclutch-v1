@@ -5,6 +5,7 @@ import { AuthContextProvider } from "@/context/AuthContext";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { NotesProvider } from "@/context/NotesContext";
+import ApiStatusFloater from "@/components/api-floater";
 
 
 const geistSans = Geist({
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
               <Navbar />
               <main className="flex-1">
                 {children}
+                <ApiStatusFloater />
               </main>
               <Footer />
             </div>

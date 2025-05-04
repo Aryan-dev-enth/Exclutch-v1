@@ -25,10 +25,14 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 
+app.get("/api", (req, res)=>{
+  res.send("Exclutch API says hello to the over-enthusiast who tried to seek into it!")
+})
 
 app.use("/api/users", userRoutes);
 app.use("/api/notes", notesRoutes);
 app.use("/api/requests", announcementRoutes);
+
 
 connectDb(db_url, db_name);
 
