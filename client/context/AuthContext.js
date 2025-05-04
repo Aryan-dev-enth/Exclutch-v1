@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { registerUserToMongo } from "@/user_api.js";
+import Cookies from 'js-cookie';
 
 const AuthContext = createContext({
   user: null,
@@ -19,6 +20,18 @@ export const AuthContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [savedUser, setSavedUser] = useState(null);
     
+    // Helper function to set user in cookie
+    const setUserCookie = (userData) => {
+        if (userData) {
+            // Set cookie with user data including isAdmin flag
+            // Max-Age: 7 days (in seconds), Path: / to be available across all routes
+            Cookies.set('user', JSON.stringify(userData), { expires: 7, path: '/' });
+        } else {
+            // Remove the cookie when user is null
+            Cookies.remove('user', { path: '/' });
+        }
+    };
+    
     const googleSignIn = async () => {
         try {
             const provider = new GoogleAuthProvider();
@@ -27,8 +40,12 @@ export const AuthContextProvider = ({ children }) => {
             
             // Register user in MongoDB
             const mongoResp = await registerUserToMongo(uid, displayName, email, photoURL);
-            setSavedUser(mongoResp.data);
-            localStorage.setItem("user", JSON.stringify(mongoResp.data));
+            const userData = mongoResp.data;
+            
+            // Set user in state and cookie
+            setSavedUser(userData);
+            setUserCookie(userData);
+            localStorage.setItem("user", JSON.stringify(userData));
 
             if (!mongoResp || mongoResp.error) {
                 console.error("MongoDB registration failed:", mongoResp?.error);
@@ -43,12 +60,26 @@ export const AuthContextProvider = ({ children }) => {
         try {
             await signOut(auth);
             setUser(null);
+            setSavedUser(null);
+            
+            // Clear user from cookie and localStorage
+            setUserCookie(null);
+            localStorage.removeItem("user");
+            
         } catch (error) {
             console.error("Logout failed:", error.message);
         }
     };
 
     useEffect(() => {
+        // Try to load user from localStorage on initial render
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            setSavedUser(userData);
+            setUserCookie(userData);
+        }
+        
         if (auth) {
             const unsubscribe = firebaseAuthStateChanged(auth, (currentUser) => {
                 setUser(currentUser);

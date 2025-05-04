@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import Link from "next/link";
 import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -8,13 +8,13 @@ import { TrendingNote } from "@/components/trending-note";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNotes } from "@/context/NotesContext.js";
+import { motion } from "framer-motion";
 
 export default function Home() {
   const { notes } = useNotes();
-  
+
   const [sortBy, setSortBy] = useState("trending");
 
-  
   // Memoize sorted notes to avoid mutating the original notes array
   const sortedNotes = useMemo(() => {
     const notesCopy = [...notes];
@@ -23,7 +23,12 @@ export default function Home() {
         notesCopy.sort((a, b) => {
           if (a.pinned !== b.pinned) return b.pinned ? 1 : -1;
           if (a.trending !== b.trending) return b.trending ? 1 : -1;
-          return (b.likeCount + b.viewCount + b.downloadsCount) - (a.likeCount + a.viewCount + a.downloadsCount);
+          return (
+            b.likeCount +
+            b.viewCount +
+            b.downloadsCount -
+            (a.likeCount + a.viewCount + a.downloadsCount)
+          );
         });
         break;
       case "most-viewed":
@@ -41,27 +46,60 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative mx-auto px-16">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand/10 via-background to-background dark:from-brand/5" />
-        <div className="container relative flex flex-col items-center justify-center space-y-10 py-20 text-center md:py-32">
-          <div className="space-y-4">
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-              Share <span className="text-secondary">Knowledge</span>, Ace <span className="text-secondary">Exams</span>
+      <section className="relative mx-auto px-4 md:px-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-brand/10 via-background to-background dark:from-brand/5 z-0" />
+
+        <div className="container relative flex flex-col items-center justify-center text-center py-20 md:py-32 z-10 space-y-10">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-4"
+          >
+            <div className="inline-block px-3 py-1 rounded-full bg-secondary text-background text-sm font-medium shadow">
+              🚀 Ace Your Exams with Peer-Powered Knowledge
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-tight">
+              <span className="block">
+                Share <span className="text-secondary">Knowledge</span>,
+              </span>
+              <span className="block">
+                Ace <span className="text-secondary">Exams</span>
+              </span>
             </h1>
-            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-              Discover and share high-quality study notes from students around the world.
+
+            <p className="mx-auto max-w-xl text-muted-foreground md:text-xl">
+              Discover high-quality study notes shared by students around the
+              globe, designed to help you succeed.
             </p>
-          </div>
-          <div className="flex w-full max-w-md flex-col gap-4 md:flex-row">
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="flex w-full max-w-md flex-col gap-4 md:flex-row"
+          >
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input type="search" placeholder="Search for notes..." className="w-full pl-10" />
+              <Input
+                type="search"
+                placeholder="Search for notes..."
+                className="w-full pl-10"
+              />
             </div>
             <Button asChild>
               <Link href="/notes">Browse Notes</Link>
             </Button>
-          </div>
-          <div className="flex flex-wrap justify-center gap-4">
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            className="flex flex-wrap justify-center gap-4"
+          >
             <Button variant="outline" size="lg" asChild>
               <Link href="/upload">
                 <Upload className="mr-2 h-4 w-4" />
@@ -71,7 +109,7 @@ export default function Home() {
             <Button size="lg" asChild>
               <Link href="/sign-up">Get Started</Link>
             </Button>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -79,15 +117,26 @@ export default function Home() {
       <section className="container mx-auto py-12 md:py-16">
         <Tabs defaultValue="trending" className="w-full">
           <div className="flex flex-col gap-4 lg:flex-row items-center justify-between">
-            <h2 className="text-2xl font-bold tracking-tight">Discover Study Notes</h2>
+            <h2 className="text-2xl font-bold tracking-tight">
+              Discover Study Notes
+            </h2>
             <TabsList>
-              <TabsTrigger value="trending" onClick={() => setSortBy("trending")}>
+              <TabsTrigger
+                value="trending"
+                onClick={() => setSortBy("trending")}
+              >
                 Trending
               </TabsTrigger>
-              <TabsTrigger value="most-viewed" onClick={() => setSortBy("most-viewed")}>
+              <TabsTrigger
+                value="most-viewed"
+                onClick={() => setSortBy("most-viewed")}
+              >
                 Most Viewed
               </TabsTrigger>
-              <TabsTrigger value="most-downloaded" onClick={() => setSortBy("most-downloaded")}>
+              <TabsTrigger
+                value="most-downloaded"
+                onClick={() => setSortBy("most-downloaded")}
+              >
                 Most Downloaded
               </TabsTrigger>
             </TabsList>
@@ -160,7 +209,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Find notes categorized by subject, semester, branch, and university with our comprehensive filtering system.
+                Find notes categorized by subject, semester, branch, and
+                university with our comprehensive filtering system.
               </p>
             </CardContent>
           </Card>
@@ -170,7 +220,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Share your knowledge by uploading notes and earn reputation badges as you help others succeed.
+                Share your knowledge by uploading notes and earn reputation
+                badges as you help others succeed.
               </p>
             </CardContent>
           </Card>
@@ -180,7 +231,8 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Access high-quality study material, save for offline use, and track your learning progress all in one place.
+                Access high-quality study material, save for offline use, and
+                track your learning progress all in one place.
               </p>
             </CardContent>
           </Card>

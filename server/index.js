@@ -5,6 +5,7 @@ import cors from 'cors';
 import connectDb from './config/connect.js';
 import userRoutes from './routes/userRoutes.js'
 import notesRoutes from './routes/notesRoutes.js'
+import announcementRoutes from "./routes/announcementRoutes.js"
 
 const app = express();
 const port = process.env.SERVER_PORT || 5000;
@@ -24,8 +25,10 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 
+
 app.use("/api/users", userRoutes);
 app.use("/api/notes", notesRoutes);
+app.use("/api/requests", announcementRoutes);
 
 connectDb(db_url, db_name);
 

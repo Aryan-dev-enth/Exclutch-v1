@@ -29,11 +29,13 @@ import { format } from "timeago.js";
 import { fetchNoteById, likeNote, postComment } from "@/notes_api";
 import { UserAuth } from "@/context/AuthContext";
 import { useNotes } from "@/context/NotesContext";
+import { useRouter } from "next/navigation"
 
 
 export default function NoteDetailPage({ params }) {
   const { id } = use(params);
   const { user } = UserAuth();
+  const router = useRouter()
 
   const {notes} = useNotes();
   const [note, setNote] = useState(null);
@@ -41,14 +43,33 @@ export default function NoteDetailPage({ params }) {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [comment, setComment] = useState("");
+  const [currentUrl, setCurrentUrl] = useState("")
 
  
-
- 
-
-
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentUrl(window.location.href)
+    }
+  }, [])
 
   const relatedNotes = notes.slice(0,4)
+
+  const handleShare = async () => {
+    try {
+      const shareData = {
+        title: note.title,
+        text: note.content,
+        url: currentUrl,
+      }
+
+       
+      await navigator.share(shareData)
+      console.log("Shared successfully")
+    } catch (err) {
+      console.error("Sharing failed:", err)
+      alert("Sharing failed or is not supported.")
+    }
+  }
 
   const handleLike = async () => {
     const response = await likeNote(user.uid, note._id)
@@ -232,7 +253,7 @@ export default function NoteDetailPage({ params }) {
                     />
                     {isSaved ? "Saved" : "Save"}
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button onClick={handleShare} variant="ghost" size="sm">
                     <Share2 className="mr-1 h-4 w-4" />
                     Share
                   </Button>

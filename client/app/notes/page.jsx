@@ -420,6 +420,7 @@ export default function NotesPage() {
                           Verified
                         </span>
                       )}
+                    
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {note.content ? note.content.slice(0, 100) + "..." : "No content preview available"}
