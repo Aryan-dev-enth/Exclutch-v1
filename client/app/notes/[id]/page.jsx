@@ -59,7 +59,7 @@ export default function NoteDetailPage({ params }) {
       console.log(note)
       const shareData = {
         title: "Exclutch Link",
-        text: "Share Knowledge, Ace Exams Discover high-quality study notes shared by students around the globe, designed to help you succeed.\n"+note.title,
+        text: "Share Knowledge, Ace Exams Discover high-quality study notes shared by students around the globe, designed to help you succeed.\n"+note.title+"\n",
         url: currentUrl,
       }
 
