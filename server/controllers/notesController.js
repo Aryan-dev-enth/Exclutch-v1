@@ -174,6 +174,32 @@ class NotesController {
         }
     };
 
+    // ✅ Update a Note by ID (Admin only)
+static updateNoteById = async (req, res) => {
+    try {
+        const { noteId } = req.params;
+        const { userId, ...updateFields } = req.body;
+        
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        if (user.role !== "admin") {
+            return res.status(403).json({ error: "Unauthorized! Admin access required" });
+        }
+
+        const updatedNote = await Note.findByIdAndUpdate(noteId, updateFields, { new: true });
+        console.log(updatedNote)
+        if (!updatedNote) return res.status(404).json({ error: "Note not found" });
+
+        res.json({ message: "Note updated successfully!", data: updatedNote });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+    
+
     // ✅ Delete a Note (Admin only)
     static deleteNote = async (req, res) => {
         try {
