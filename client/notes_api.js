@@ -121,3 +121,21 @@ export const fetchNoteById = async (noteId) => {
       return null;
     }
   }
+
+  export const updateNote = async (noteId, updateFields, userId) => {
+    try {
+      const response = await axios.put(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/notes/${noteId}/update`,
+        { ...updateFields, userId }
+      );
+  
+      if (response.status === 200) {
+        return response.data;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error updating note:", error);
+      return null;
+    }
+  };
+  
