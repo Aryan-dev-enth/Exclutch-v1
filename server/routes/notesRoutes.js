@@ -13,4 +13,6 @@ router.put("/:noteId/like", NotesController.likeNote);
 router.post("/:noteId/comment", NotesController.addComment);
 router.delete("/:noteId", NotesController.deleteNote);
 
+router.put("/:noteId/update", NotesController.updateNoteById);
+
 export default router;
