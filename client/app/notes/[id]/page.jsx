@@ -56,9 +56,10 @@ export default function NoteDetailPage({ params }) {
 
   const handleShare = async () => {
     try {
+      console.log(note)
       const shareData = {
-        title: note.title,
-        text: note.content,
+        title: "Exclutch Link",
+        text: "Share Knowledge, Ace Exams Discover high-quality study notes shared by students around the globe, designed to help you succeed.\n"+note.title,
         url: currentUrl,
       }
 
