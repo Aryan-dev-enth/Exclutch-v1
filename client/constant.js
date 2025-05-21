@@ -10,6 +10,10 @@ export const navLinks = [
         title: "Upload",
         href: "/upload"
     }
+    ,{
+        title: "CGPA Calc",
+        href: "/cgpa-calc"
+    }
 ]
 
 

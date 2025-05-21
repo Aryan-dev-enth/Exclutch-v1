@@ -72,7 +72,7 @@ export const AuthContextProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        // Try to load user from localStorage on initial render
+        
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
             const userData = JSON.parse(storedUser);

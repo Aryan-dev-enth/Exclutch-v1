@@ -64,7 +64,7 @@ export default function NotFound() {
       {/* Glitchy elements */}
       <div className="relative z-10 text-center">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="mb-8">
-          <GlitchText className="text-5xl md:text-7xl font-bold font-mono text-orange-500">LOGIN</GlitchText>
+          <GlitchText className="text-5xl md:text-7xl font-bold font-mono text-orange-500">ERROR</GlitchText>
         </motion.div>
 
         <motion.div
@@ -83,8 +83,7 @@ export default function NotFound() {
           className="max-w-md mx-auto mb-8"
         >
           <p className="text-gray-400 mb-6">
-            Looks like you've ventured into restricted territory. This page doesn't exist or has been moved to a
-            classified location.
+           Try login or wait for the server to reboot.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
