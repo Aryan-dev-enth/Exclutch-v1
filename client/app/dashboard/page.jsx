@@ -274,21 +274,7 @@ export default function Dashboard() {
                   Active
                 </Badge>
               </div>
-              <Separator />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Database ID:</span>
-                  <p className="text-gray-600 font-mono break-all">
-                    {userData._id}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium">Firebase UID:</span>
-                  <p className="text-gray-600 font-mono break-all">
-                    {userData.uid}
-                  </p>
-                </div>
-              </div>
+              
             </div>
           </CardContent>
         </Card>
