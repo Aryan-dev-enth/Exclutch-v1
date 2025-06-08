@@ -67,7 +67,7 @@ export default function NoteDetailPage({ params }) {
       const shareData = {
         title: "Exclutch Link",
         text:
-          "Share Knowledge, Ace Exams Discover high-quality study notes shared by students around the globe, designed to help you succeed.\n" +
+          "Find and help others find PYQ's and Notes— all in one place. \nExclutch (Beta) find PYQ's and Notes – Built by SRMUH students, for SRMUH students!\n\n" +
           (note.title || "Untitled Note") +
           "\n",
         url: currentUrl,
