@@ -25,7 +25,7 @@ export default function Home() {
     if (!user) {
       const timer = setTimeout(() => {
         setShowAuthPopup(true);
-      }, 1500);
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, [user]);
