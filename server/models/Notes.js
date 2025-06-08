@@ -14,7 +14,7 @@ const NoteSchema = new mongoose.Schema(
     subject_code: { type: String },
     branch: { type: String },
     college: { type: String },
-    author: { type: String },
+    author: { type: mongoose.Schema.Types.ObjectId, ref : "User" },
     likeCount: { type: Number, default: 0 },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     downloadsCount: { type: Number, default: 0 },
