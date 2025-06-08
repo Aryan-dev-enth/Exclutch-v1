@@ -15,4 +15,7 @@ router.delete("/:noteId", NotesController.deleteNote);
 
 router.put("/:noteId/update", NotesController.updateNoteById);
 
+
+router.get("/admin/comments/:userId", NotesController.getAllComments); 
+router.delete("/admin/comments/:commentId", NotesController.deleteCommentById); 
 export default router;

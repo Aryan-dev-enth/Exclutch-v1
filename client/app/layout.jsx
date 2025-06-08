@@ -6,7 +6,7 @@ import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { NotesProvider } from "@/context/NotesContext";
 import ApiStatusFloater from "@/components/api-floater";
-
+import { Toaster } from "@/components/ui/sonner"
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -57,6 +57,7 @@ export default function RootLayout({ children }) {
               <div className="flex min-h-screen flex-col overflow-x-hidden">
                 <Navbar />
                 <main className="flex-1">
+                  <Toaster/>
                   {children}
                   <ApiStatusFloater />
                 </main>

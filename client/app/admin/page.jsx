@@ -315,66 +315,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Analytics Overview */}
-        <Card className="mt-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div>
-              <CardTitle>Analytics Overview</CardTitle>
-              <CardDescription>Platform performance metrics</CardDescription>
-            </div>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/admin/analytics">
-                <BarChart4 className="mr-2 h-4 w-4" />
-                View Details
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="aspect-[21/9] w-full rounded-md border">
-              <div className="flex h-full items-center justify-center">
-                <div className="flex flex-col items-center">
-                  <BarChart4 className="h-16 w-16 text-muted-foreground" />
-                  <p className="mt-2 text-sm text-muted-foreground">Analytics visualization goes here</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-sm font-medium text-muted-foreground">New Users (This Week)</div>
-                  <div className="text-2xl font-bold">+248</div>
-                  <div className="mt-1 text-xs text-green-500">+12% from last week</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-sm font-medium text-muted-foreground">Note Uploads (This Week)</div>
-                  <div className="text-2xl font-bold">+87</div>
-                  <div className="mt-1 text-xs text-green-500">+5% from last week</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-sm font-medium text-muted-foreground">Downloads (This Week)</div>
-                  <div className="text-2xl font-bold">3,427</div>
-                  <div className="mt-1 text-xs text-green-500">+18% from last week</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-sm font-medium text-muted-foreground">Active Users (Today)</div>
-                  <div className="text-2xl font-bold">1,245</div>
-                  <div className="mt-1 text-xs text-red-500">-3% from yesterday</div>
-                </CardContent>
-              </Card>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button variant="outline" className="w-full" asChild>
-              <Link href="/admin/analytics">View Detailed Analytics</Link>
-            </Button>
-          </CardFooter>
-        </Card>
+       
 
         {/* Quick Actions */}
         <Card className="mt-6">

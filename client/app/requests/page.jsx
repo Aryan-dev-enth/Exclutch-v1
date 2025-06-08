@@ -1,16 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import axios from "axios"
+import { isAfter, subDays, formatDistanceToNow, subHours } from "date-fns"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import axios from "axios"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
 
 export default function RequestsPage() {
-  const [requests, setRequests] = useState([])  // To store all the requests
+  const [requests, setRequests] = useState([])
   const [user, setUser] = useState(null)
   const [newRequest, setNewRequest] = useState({
     title: "",
@@ -20,23 +23,23 @@ export default function RequestsPage() {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    // Check if the user is an admin from localStorage
-    const user = JSON.parse(localStorage.getItem("user"));
-    console.log(user)
-    setUser(user);
+    const user = JSON.parse(localStorage.getItem("user") || "null")
+    setUser(user)
     if (user && user.role === "admin") {
       setIsAdmin(true)
     }
 
     const fetchRequests = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/requests`) // API endpoint to fetch requests
-      
-        if(response.data.success)
-        {
-            setRequests(response.data.data)
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/requests`)
+        if (response.data.success) {
+          const twoDaysAgo = subDays(new Date(), 2)
+          const recentRequests = response.data.data.filter((request) => {
+            const requestDate = new Date(request.createdAt)
+            return isAfter(requestDate, twoDaysAgo)
+          })
+          setRequests(recentRequests)
         }
-        
       } catch (error) {
         console.error("Failed to fetch requests", error)
       }
@@ -56,15 +59,15 @@ export default function RequestsPage() {
     const newRequestObj = {
       title: newRequest.title,
       content: newRequest.content,
-      postedBy: user._id,
+      postedBy: user?._id,
       createdAt: new Date(),
     }
 
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/requests`, newRequestObj) // API endpoint to create a new request
-      setRequests((prev) => [newRequestObj, ...prev]) // Add new request to the state
-      setNewRequest({ title: "", content: "" }) // Reset form fields
-      setShowForm(false) // Hide form
+      await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/requests`, newRequestObj)
+      setRequests((prev) => [newRequestObj, ...prev])
+      setNewRequest({ title: "", content: "" })
+      setShowForm(false)
     } catch (error) {
       console.error("Failed to create request", error)
     }
@@ -75,19 +78,19 @@ export default function RequestsPage() {
     if (!confirmDelete) return
 
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE_URL}/requests/${id}`) // API endpoint to delete a request
-      setRequests((prev) => prev.filter((request) => request.id !== id)) // Remove deleted request from the list
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_BASE_URL}/requests/${id}`)
+      setRequests((prev) => prev.filter((request) => request._id !== id))
     } catch (error) {
       console.error("Failed to delete request", error)
     }
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+    <div className="container mx-auto px-4 py-8 h-screen flex flex-col">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Note Requests</h1>
-          <p className="text-muted-foreground mt-1">Request notes from the community or help others by sharing yours</p>
+          <h1 className="text-3xl font-bold tracking-tight">Recent Note Requests</h1>
+          <p className="text-muted-foreground mt-1">Showing requests from the last 2 days</p>
         </div>
         <Button className="mt-4 md:mt-0" onClick={() => setShowForm(!showForm)}>
           {showForm ? "Cancel" : "New Request"}
@@ -95,7 +98,7 @@ export default function RequestsPage() {
       </div>
 
       {showForm && (
-        <Card className="mb-8">
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>Create New Request</CardTitle>
           </CardHeader>
@@ -125,55 +128,70 @@ export default function RequestsPage() {
         </Card>
       )}
 
-      <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">All Requests</TabsTrigger>
-          <TabsTrigger value="open">Open Requests</TabsTrigger>
-          <TabsTrigger value="resolved">Resolved Requests</TabsTrigger>
-        </TabsList>
-        <TabsContent value="all">
-  {requests.length === 0 ? (
-    <Alert className="bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-950 dark:border-gray-900 dark:text-gray-300">
-      <AlertTitle>No Requests Found</AlertTitle>
-      <AlertDescription>There are no requests available.</AlertDescription>
-    </Alert>
-  ) : (
-    requests.map((request) => (
-      <Card key={request._id} className="mb-4">
-        <CardHeader>
-          <CardTitle>{request.title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>{request.content}</p>
-          {/* Display the user's details */}
-          <div className="flex items-center space-x-4 mt-4">
-            <img
-              src={request.postedBy?.profilePic || "placeholder.png"} // Fallback profile picture
-              alt={request.postedBy?.name || "User"}
-              className="w-10 h-10 rounded-full object-cover"
-            />
-            <div>
-              <p className="font-semibold">{request.postedBy?.name}</p>
-              <p className="text-sm text-muted-foreground">{request.postedBy?.email}</p>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter>
-          {isAdmin && (
-            <Button
-              className="bg-red-500 text-white"
-              onClick={() => handleDeleteRequest(request._id)}
-            >
-              Delete
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
-    ))
-  )}
-</TabsContent>
+      <ScrollArea className="flex-1">
+        <div className="space-y-4 pr-4">
+          {requests.length === 0 ? (
+            <Alert className="bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-950 dark:border-gray-900 dark:text-gray-300">
+              <AlertTitle>No Recent Requests Found</AlertTitle>
+              <AlertDescription>There are no requests from the last 2 days.</AlertDescription>
+            </Alert>
+          ) : (
+            requests.map((request) => {
+              const age = formatDistanceToNow(new Date(request.createdAt), { addSuffix: true })
+              const isNew = isAfter(new Date(request.createdAt), subHours(new Date(), 3))
 
-      </Tabs>
+              return (
+                <Card
+                  key={request._id}
+                  className="w-full hover:shadow-md transition-shadow"
+                >
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="flex items-center gap-2">
+                        {request.title}
+                        {isNew && (
+                          <Badge variant="outline" className="text-orange-500 border-orange-500">
+                            New
+                          </Badge>
+                        )}
+                      </CardTitle>
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">
+                        {age}
+                      </span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="mb-4">{request.content}</p>
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={request.postedBy?.profilePic || "/placeholder.svg"}
+                        alt={request.postedBy?.name || "User"}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="font-semibold">{request.postedBy?.name || "Anonymous"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {request.postedBy?.email || "No email"}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  {isAdmin && (
+                    <CardFooter>
+                      <Button
+                        variant="destructive"
+                        onClick={() => handleDeleteRequest(request._id)}
+                      >
+                        Delete
+                      </Button>
+                    </CardFooter>
+                  )}
+                </Card>
+              )
+            })
+          )}
+        </div>
+      </ScrollArea>
     </div>
   )
 }

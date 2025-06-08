@@ -12,7 +12,7 @@ export function middleware(req) {
   
     if (path.startsWith('/upload') || path.startsWith('/requests') || path.startsWith('/notes')) {
         if (!user) {
-          return NextResponse.redirect(new URL('/notfound', req.url));
+          return NextResponse.redirect(new URL('/', req.url));
         }
       }
 

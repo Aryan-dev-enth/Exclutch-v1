@@ -11,11 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DeleteIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import NoteAnalytics from "@/components/note-analytics";
 import {
   BookmarkIcon,
   Calendar,
@@ -29,80 +31,127 @@ import { format } from "timeago.js";
 import { fetchNoteById, likeNote, postComment } from "@/notes_api";
 import { UserAuth } from "@/context/AuthContext";
 import { useNotes } from "@/context/NotesContext";
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 
+import { toast } from "sonner";
 
 export default function NoteDetailPage({ params }) {
   const { id } = use(params);
   const { user } = UserAuth();
-  const router = useRouter()
+  const router = useRouter();
 
-  const {notes} = useNotes();
+  const { notes } = useNotes();
   const [note, setNote] = useState(null);
-  const [likeCount, setLikeCount] = useState(0)
+  const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [comment, setComment] = useState("");
-  const [currentUrl, setCurrentUrl] = useState("")
+  const [currentUrl, setCurrentUrl] = useState("");
 
- 
+  const [isCommenting, setIsCommenting] = useState(false);
+const [lastCommentTime, setLastCommentTime] = useState(0);
+const COMMENT_COOLDOWN = 5000; // 5 seconds
+
+
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setCurrentUrl(window.location.href)
+      setCurrentUrl(window.location.href);
     }
-  }, [])
+  }, []);
 
-  const relatedNotes = notes.slice(0,4)
+  const relatedNotes = notes.slice(0, 4);
 
   const handleShare = async () => {
     try {
-      console.log(note)
+      console.log(note);
       const shareData = {
         title: "Exclutch Link",
-        text: "Share Knowledge, Ace Exams Discover high-quality study notes shared by students around the globe, designed to help you succeed.\n"+note.title+"\n",
+        text:
+          "Share Knowledge, Ace Exams Discover high-quality study notes shared by students around the globe, designed to help you succeed.\n" +
+          note.title +
+          "\n",
         url: currentUrl,
-      }
+      };
 
-       
-      await navigator.share(shareData)
-      console.log("Shared successfully")
+      await navigator.share(shareData);
+      console.log("Shared successfully");
     } catch (err) {
-      console.error("Sharing failed:", err)
-      alert("Sharing failed or is not supported.")
+      console.error("Sharing failed:", err);
+      toast("Sharing failed or is not supported.");
     }
-  }
+  };
 
   const handleLike = async () => {
-    const response = await likeNote(user.uid, note._id)
+    const response = await likeNote(user.uid, note._id);
     if (isLiked) {
-      setLikeCount((prev) => prev - 1)
+      setLikeCount((prev) => prev - 1);
     } else {
-      setLikeCount((prev) => prev + 1)
+      setLikeCount((prev) => prev + 1);
     }
-    setIsLiked((prev) => !prev)
+    setIsLiked((prev) => !prev);
+  };
+
+ const handleComment = async () => {
+  const now = Date.now();
+
+  if (now - lastCommentTime < COMMENT_COOLDOWN) {
+    toast("Please wait a few seconds before commenting again.");
+    return;
   }
 
-  const handleComment = async () => {
-    if (comment.trim() === "") return;
-    await postComment(comment.trim(), user.uid, id);
-    setComment("");
+  if (comment.trim() === "") return;
+
+  setIsCommenting(true);
+
+  const newComment = {
+    _id: now.toString(),
+    text: comment.trim(),
+    createdAt: new Date().toISOString(),
+    user: {
+      profilePic: user.profilePic || null,
+      name: user.name || "You",
+    },
   };
+
+  setNote((prevNote) => ({
+    ...prevNote,
+    comments: [...prevNote.comments, newComment],
+  }));
+
+  setComment("");
+  setLastCommentTime(now);
+
+  try {
+    await postComment(newComment.text, user.uid, id);
+  } catch (error) {
+    console.error("Failed to post comment:", error);
+    setNote((prevNote) => ({
+      ...prevNote,
+      comments: prevNote.comments.filter(
+        (comment) => comment._id !== newComment._id
+      ),
+    }));
+    toast("Failed to post comment. Please try again.");
+  } finally {
+    setIsCommenting(false);
+  }
+};
+
 
   // Handle save
   const handleSave = () => {
     setIsSaved((prev) => !prev);
   };
 
-  
   useEffect(() => {
     const fetchNote = async () => {
       try {
         const result = await fetchNoteById(id);
         const singlenote = result.data;
         setNote(singlenote);
-        setLikeCount(singlenote.likes.length)
+        setLikeCount(singlenote.likes.length);
         const savedUser = JSON.parse(localStorage.getItem("user"));
-  
+
         if (savedUser && singlenote.likes.includes(savedUser._id)) {
           setIsLiked(true);
         }
@@ -110,20 +159,18 @@ export default function NoteDetailPage({ params }) {
         console.error("Error fetching note:", error);
       }
     };
-  
+
     if (id) {
       fetchNote();
     }
-  }, [id]);  // Add `id` as a dependency
-  
+  }, [id]); // Add `id` as a dependency
 
-  if(!user || !note)
-  {
-    return <></>
+  if (!user || !note) {
+    return <></>;
   }
 
-  console.log(note.url)
-  const note_url =`https://drive.google.com/file/d/${note.gapis_file_id}/`;
+  console.log(note.url);
+  const note_url = `https://drive.google.com/file/d/${note.gapis_file_id}/`;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 md:py-10">
@@ -178,14 +225,17 @@ export default function NoteDetailPage({ params }) {
                   <div className="flex items-center justify-between bg-muted/50 p-2">
                     <div className="text-sm font-medium">{note.title}.pdf</div>
                     <Button variant="ghost" size="icon" asChild>
-                      <Link href={`${note_url}download`} target="_blank">
+                      <Link
+                        href={note.file_url?.webContentLink || note.url}
+                        target="_blank"
+                      >
                         <Download className="h-4 w-4" />
                       </Link>
                     </Button>
                   </div>
                   <div className="aspect-video bg-black">
                     <iframe
-                      src={ note.url || `${note_url}preview`}
+                      src={note.url || `${note_url}preview`}
                       className="h-full w-full"
                       title="PDF Preview"
                     ></iframe>
@@ -231,15 +281,21 @@ export default function NoteDetailPage({ params }) {
             <CardFooter>
               <div className="flex flex-col items-start w-full sm:flex-row lg:items-center justify-between">
                 <div className="flex items-center gap-2">
-                <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleLike}
-      className={isLiked ? "text-blue-500" : "text-muted-foreground"}
-    >
-      <ThumbsUp className={`mr-1 h-4 w-4 ${isLiked ? "fill-blue-500" : ""}`} />
-      {isLiked ? "Liked" : "Like"} ({likeCount})
-    </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLike}
+                    className={
+                      isLiked ? "text-blue-500" : "text-muted-foreground"
+                    }
+                  >
+                    <ThumbsUp
+                      className={`mr-1 h-4 w-4 ${
+                        isLiked ? "fill-blue-500" : ""
+                      }`}
+                    />
+                    {isLiked ? "Liked" : "Like"} ({likeCount})
+                  </Button>
                   <Button variant="ghost" size="sm">
                     <MessageSquare className="mr-1 h-4 w-4" />
                     Comment ({note.comments.length})
@@ -270,37 +326,47 @@ export default function NoteDetailPage({ params }) {
             <CardContent>
               <div className="space-y-4">
                 {note.comments && note.comments.length > 0 ? (
-                  note.comments.map((comment, index) => (
-                    <div key={index} className="flex gap-4">
-                      <Avatar>
-                        <AvatarImage
-                          src={
-                            comment.user.profilePic ||
-                            "/placeholder.png?height=40&width=40"
-                          }
-                        />
-                        <AvatarFallback>
-                          {comment.user.profilePic ? comment.user.profilePic: "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="mb-2 flex items-center gap-2">
-                          <span className="font-medium">
-                            {comment.user.name || "Unknown User"}
-                          </span>
+                  <div
+                    className="max-h-64 overflow-y-auto flex flex-col-reverse space-y-4 space-y-reverse"
+                    // max-h-64 is ~16rem, adjust height as needed
+                  >
+                    {note.comments
+                      .slice() // clone so original isn't mutated
+                      .reverse() // latest first
+                      .map((comment, index) => (
+                        <div key={index} className="flex gap-4">
+                          <Avatar>
+                            <AvatarImage
+                              src={
+                                comment.user.profilePic ||
+                                "/placeholder.png?height=40&width=40"
+                              }
+                            />
+                            <AvatarFallback>
+                              {comment.user.profilePic
+                                ? comment.user.profilePic
+                                : "U"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="mb-2 flex items-center gap-2">
+                              <span className="font-medium">
+                                {comment.user.name || "Unknown User"}
+                              </span>
 
-                          <span className="text-xs text-muted-foreground">
-                            {comment.createdAt
-                              ? format(comment.createdAt)
-                              : "Just now"}
-                          </span>
+                              <span className="text-xs text-muted-foreground">
+                                {comment.createdAt
+                                  ? format(comment.createdAt)
+                                  : "Just now"}
+                              </span>
+                            </div>
+                            <p className="text-sm">
+                              {comment.text || "No comment provided."}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-sm">
-                          {comment.text || "No comment provided."}
-                        </p>
-                      </div>
-                    </div>
-                  ))
+                      ))}
+                  </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
                     No comments yet.
@@ -310,7 +376,7 @@ export default function NoteDetailPage({ params }) {
                 <Separator />
                 <div className="flex gap-4">
                   <Avatar>
-                    <AvatarFallback>{'U'}</AvatarFallback>
+                    <AvatarFallback>{"U"}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <Textarea
@@ -319,48 +385,33 @@ export default function NoteDetailPage({ params }) {
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                     />
-                    <Button onClick={handleComment}>Post Comment</Button>
+                    <Button className="cursor-pointer" onClick={handleComment}>
+                      Post Comment
+                    </Button>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-
         <div className="">
-          <Card className="sticky top-20">
-            <CardHeader>
-              <CardTitle>Related Notes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {relatedNotes.map((relatedNote, index) => (
-                <div key={relatedNote._id} className="flex gap-3">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-md">
-                    <img
-                      src={relatedNote.image || "/placeholder.png"}
-                      alt={relatedNote.title}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <Link
-                      href={`/notes/${relatedNote._id}`}
-                      className="line-clamp-2 font-medium hover:text-brand"
-                    >
-                      {relatedNote.title}
-                    </Link>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {relatedNote.subject}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              <Button variant="outline" className="w-full" asChild>
-                <Link href="/notes">View More Notes</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div> 
+          <NoteAnalytics
+            likeCount={likeCount}
+            downloadsCount={note.downloadsCount || 0}
+            viewCount={note.viewCount}
+            comments={note.comments}
+            published={note.published}
+            subject={note.subject}
+            document_type={note.document_type}
+            college={note.college}
+            branch={note.branch}
+            author={note.author}
+            verified={note.verified}
+            pinned={note.pinned}
+            trending={note.trending}
+            tags={note.tags}
+          />
+        </div>
       </div>
     </div>
   );
