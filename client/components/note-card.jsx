@@ -17,16 +17,57 @@ import {
 } from "lucide-react";
 
 export function NoteCard({ note, viewMode = "grid" }) {
+ 
+
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    if (!dateString) return "Unknown";
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      return "Invalid date";
+    }
   };
 
   const getPreviewUrl = () => {
-    return `https://drive.google.com/file/d/${note.gapis_file_id}/preview`;
+    return `https://drive.google.com/file/d/${note?.gapis_file_id || 'default'}/preview`;
+  };
+
+  // Helper function to get author name with fallback
+  const getAuthorName = () => {
+    if (!note?.author) return "Unknown Author";
+    
+    // If author is an object (new structure), get the name
+    if (typeof note.author === 'object' && note.author !== null) {
+      return note.author.name || note.author.email || "Unknown Author";
+    }
+    
+    // If author is a string (old structure), return as is
+    if (typeof note.author === 'string') {
+      return note.author;
+    }
+    
+    return "Unknown Author";
+  };
+
+  // Helper function to safely get numeric values with fallback
+  const safeGetCount = (value, fallback = 0) => {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = parseInt(value, 10);
+      return isNaN(parsed) ? fallback : parsed;
+    }
+    return fallback;
+  };
+
+  // Helper function to get likes count
+  const getLikesCount = () => {
+    const likeCount = safeGetCount(note?.likeCount);
+    const likesArrayLength = Array.isArray(note?.likes) ? note.likes.length : 0;
+    return likeCount + likesArrayLength;
   };
 
   if (viewMode === "list") {
@@ -40,12 +81,12 @@ export function NoteCard({ note, viewMode = "grid" }) {
                 <iframe
                   src={getPreviewUrl()}
                   className="h-full w-full border-0"
-                  title={`Preview of ${note.title}`}
+                  title={`Preview of ${note?.title || 'Untitled'}`}
                 />
               </div>
               {/* Status Badges */}
               <div className="absolute top-2 left-2 flex flex-col gap-1">
-                {note.pinned && (
+                {note?.pinned && (
                   <Badge
                     variant="secondary"
                     className="bg-amber-100 text-amber-800 text-xs"
@@ -54,7 +95,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
                     Pinned
                   </Badge>
                 )}
-                {note.trending && (
+                {note?.trending && (
                   <Badge
                     variant="secondary"
                     className="bg-red-100 text-red-800 text-xs"
@@ -64,7 +105,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
                   </Badge>
                 )}
               </div>
-              {note.verified && (
+              {note?.verified && (
                 <div className="absolute top-2 right-2">
                   <Badge
                     variant="secondary"
@@ -82,13 +123,13 @@ export function NoteCard({ note, viewMode = "grid" }) {
               <div className="space-y-3">
                 {/* Header */}
                 <div>
-                  <Link href={`/notes/${note._id}`} className="group">
+                  <Link href={`/notes/${note?._id || '#'}`} className="group">
                     <h3 className="text-lg font-semibold line-clamp-2 group-hover:text-blue-600 transition-colors">
-                      {note.title}
+                      {note?.title || "Untitled"}
                     </h3>
                   </Link>
                   <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                    {note.content || "No description available"}
+                    {note?.content || "No description available"}
                   </p>
                 </div>
 
@@ -96,20 +137,27 @@ export function NoteCard({ note, viewMode = "grid" }) {
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <FileText className="w-3 h-3" />
-                    {note.document_type}
+                    {note?.document_type || "Document"}
                   </span>
-                  <span>•</span>
-                  <span>{note.subject}</span>
-                  <span>•</span>
-
-                  <span>{note.branch}</span>
+                  {note?.subject && (
+                    <>
+                      <span>•</span>
+                      <span>{note.subject}</span>
+                    </>
+                  )}
+                  {note?.branch && (
+                    <>
+                      <span>•</span>
+                      <span>{note.branch}</span>
+                    </>
+                  )}
                 </div>
 
                 {/* Tags */}
-                {note.tags && note.tags.length > 0 && (
+                {note?.tags && Array.isArray(note.tags) && note.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {note.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
+                    {note.tags.slice(0, 3).map((tag, index) => (
+                      <Badge key={`${tag}-${index}`} variant="outline" className="text-xs">
                         {tag}
                       </Badge>
                     ))}
@@ -126,31 +174,33 @@ export function NoteCard({ note, viewMode = "grid" }) {
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Heart className="w-3 h-3" />
-                      {note.likeCount + note.likes.length}
+                      {getLikesCount()}
                     </span>
                     <span className="flex items-center gap-1">
                       <Eye className="w-3 h-3" />
-                      {note.viewCount}
+                      {safeGetCount(note?.viewCount)}
                     </span>
                     <span className="flex items-center gap-1">
                       <Download className="w-3 h-3" />
-                      {note.downloadsCount}
+                      {safeGetCount(note?.downloadsCount)}
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      {formatDate(note.published)}
+                      {formatDate(note?.published)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">
-                      by {note.author}
+                      by {getAuthorName()}
                     </span>
-                    <Button size="sm" variant="outline" asChild>
-                      <Link href={note.file_url.webViewLink} >
-                        <ExternalLink className="w-3 h-3 mr-1" />
-                        View
-                      </Link>
-                    </Button>
+                    {note?.file_url?.webViewLink && (
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={note.file_url.webViewLink} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="w-3 h-3 mr-1" />
+                          View
+                        </Link>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -168,14 +218,14 @@ export function NoteCard({ note, viewMode = "grid" }) {
         {/* Preview Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           <iframe
-            src={note.url ? note.url : getPreviewUrl()}
+            src={note?.url || getPreviewUrl()}
             className="h-full w-full border-0 transition-transform group-hover:scale-105"
-            title={`Preview of ${note.title}`}
+            title={`Preview of ${note?.title || 'Untitled'}`}
           />
 
           {/* Status Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {note.pinned && (
+            {note?.pinned && (
               <Badge
                 variant="secondary"
                 className="bg-amber-100 text-amber-800 text-xs"
@@ -184,7 +234,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
                 Pinned
               </Badge>
             )}
-            {note.trending && (
+            {note?.trending && (
               <Badge
                 variant="secondary"
                 className="bg-red-100 text-red-800 text-xs"
@@ -195,7 +245,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
             )}
           </div>
 
-          {note.verified && (
+          {note?.verified && (
             <div className="absolute top-2 right-2">
               <Badge
                 variant="secondary"
@@ -210,7 +260,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <Button size="sm" variant="secondary" asChild>
-              <Link href={`/notes/${note._id}`} target="_blank">
+              <Link href={`/notes/${note?._id || '#'}`} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Quick View
               </Link>
@@ -222,22 +272,22 @@ export function NoteCard({ note, viewMode = "grid" }) {
         <div className="p-4 space-y-3">
           {/* Header */}
           <div>
-            <Link href={`/notes/${note._id}`} target="_blank">
+            <Link href={`/notes/${note?._id || '#'}`} target="_blank" rel="noopener noreferrer">
               <h3 className="font-semibold line-clamp-2 group-hover:text-blue-600 transition-colors">
-                {note.title}
+                {note?.title || "Untitled"}
               </h3>
             </Link>
             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-              {note.content || "No description available"}
+              {note?.content || "No description available"}
             </p>
           </div>
 
           {/* Metadata */}
           <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
             <Badge variant="outline" className="text-xs">
-              {note.document_type}
+              {note?.document_type || "Document"}
             </Badge>
-            {note.subject && (
+            {note?.subject && (
               <Badge variant="outline" className="text-xs">
                 {note.subject}
               </Badge>
@@ -245,10 +295,10 @@ export function NoteCard({ note, viewMode = "grid" }) {
           </div>
 
           {/* Tags */}
-          {note.tags && note.tags.length > 0 && (
+          {note?.tags && Array.isArray(note.tags) && note.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
-              {note.tags.slice(0, 2).map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
+              {note.tags.slice(0, 2).map((tag, index) => (
+                <Badge key={`${tag}-${index}`} variant="secondary" className="text-xs">
                   {tag}
                 </Badge>
               ))}
@@ -265,23 +315,25 @@ export function NoteCard({ note, viewMode = "grid" }) {
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Heart className="w-3 h-3" />
-                {note.likeCount + note.likes.length}
+                {getLikesCount()}
               </span>
               <span className="flex items-center gap-1">
                 <Eye className="w-3 h-3" />
-                {note.viewCount}
+                {safeGetCount(note?.viewCount)}
               </span>
               <span className="flex items-center gap-1">
                 <Download className="w-3 h-3" />
-                {note.downloadsCount}
+                {safeGetCount(note?.downloadsCount)}
               </span>
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatDate(note.published)}
+              {formatDate(note?.published)}
             </div>
           </div>
 
-          <div className="text-xs text-muted-foreground">by {note.author}</div>
+          <div className="text-xs text-muted-foreground">
+            by {getAuthorName()}
+          </div>
         </div>
       </CardContent>
     </Card>
