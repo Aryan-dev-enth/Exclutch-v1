@@ -232,25 +232,34 @@ export default function Home() {
                 transition={{ delay: 0.9, duration: 0.6 }}
                 className="flex flex-col sm:flex-row gap-4 w-full max-w-md"
               >
-                <Button variant="outline" size="lg" className="flex-1 h-12 rounded-xl border-2" asChild>
-                  <Link href="/upload" className="flex items-center gap-2">
-                    <Upload className="h-4 w-4" />
-                    Upload Notes
-                  </Link>
-                </Button>
-                <Button 
-                  size="lg" 
-                  className="flex-1 h-12 rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
-                  onClick={() => !user && setShowAuthPopup(true)}
-                >
-                  {user ? (
-                    <span className="flex items-center gap-2">
-                      Welcome Back! <ArrowRight className="h-4 w-4" />
-                    </span>
-                  ) : (
-                    'Get Started'
-                  )}
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-4 w-full">
+  <Button
+    variant="outline"
+    size="lg"
+    className="w-full sm:flex-1 h-12 rounded-xl border-2"
+    asChild
+  >
+    <Link href="/upload" className="flex items-center justify-center gap-2">
+      <Upload className="h-4 w-4" />
+      Upload Notes
+    </Link>
+  </Button>
+
+  <Button
+    size="lg"
+    className="w-full sm:flex-1 h-12 rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
+    onClick={() => !user && setShowAuthPopup(true)}
+  >
+    {user ? (
+      <span className="flex items-center justify-center gap-2">
+        Welcome Back! <ArrowRight className="h-4 w-4" />
+      </span>
+    ) : (
+      'Get Started'
+    )}
+  </Button>
+</div>
+
               </motion.div>
 
               {/* Stats */}
