@@ -65,13 +65,15 @@ export default function NoteDetailPage({ params }) {
       if (!note) return;
       
       const shareData = {
-        title: "Exclutch Link",
-        text:
-          "Find and help others find PYQ's and Notes— all in one place. \nExclutch (Beta) find PYQ's and Notes – Built by SRMUH students, for SRMUH students!\n\n" +
-          (note.title || "Untitled Note") +
-          "\n",
-        url: currentUrl,
-      };
+  title: "Exclutch – Smart Study Simplified",
+  text:
+    "📚 *Exclutch (Beta)* – Your one-stop platform for PYQs and Notes!\n" +
+    "Built *by SRMUH students, for SRMUH students* ❤️\n\n" +
+    "📝 *" + (note.title || "Untitled Note") + "*\n\n" +
+    "Start preparing smarter, not harder! 👇",
+  url: currentUrl,
+};
+
 
       await navigator.share(shareData);
       console.log("Shared successfully");
