@@ -102,7 +102,7 @@ export default function NotesPage() {
           note.title.toLowerCase().includes(searchLower) ||
           note.subject?.toLowerCase().includes(searchLower) ||
           note.content?.toLowerCase().includes(searchLower) ||
-          note.author?.toLowerCase().includes(searchLower) ||
+          
           note.tags?.some((tag) => tag.toLowerCase().includes(searchLower))
       );
     }
