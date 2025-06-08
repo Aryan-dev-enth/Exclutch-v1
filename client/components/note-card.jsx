@@ -195,7 +195,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
                     </span>
                     {note?.file_url?.webViewLink && (
                       <Button size="sm" variant="outline" asChild>
-                        <Link href={note.file_url.webViewLink} target="_blank" rel="noopener noreferrer">
+                        <Link href={note.file_url.webViewLink}  rel="noopener noreferrer">
                           <ExternalLink className="w-3 h-3 mr-1" />
                           View
                         </Link>
@@ -260,7 +260,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <Button size="sm" variant="secondary" asChild>
-              <Link href={`/notes/${note?._id || '#'}`} target="_blank" rel="noopener noreferrer">
+              <Link href={`/notes/${note?._id || '#'}`}  rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Quick View
               </Link>
