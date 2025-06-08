@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const NoteSchema = new mongoose.Schema(
   {
-    gapis_file_id: { type: String, unique: true },
+      gapis_file_id: { type: String },
     supabase_path: { type: Object },
     url: {type: String},
     title: { type: String, required: true },
