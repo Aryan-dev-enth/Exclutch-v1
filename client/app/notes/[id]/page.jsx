@@ -221,7 +221,7 @@ export default function NoteDetailPage({ params }) {
               <CardDescription>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{note.author || "Anonymous"}</span>
+                    <span className="font-medium">{note.author.name || "Anonymous"}</span>
                   </div>
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <div className="flex items-center gap-1">
@@ -427,7 +427,7 @@ export default function NoteDetailPage({ params }) {
             document_type={note.document_type || ""}
             college={note.college || ""}
             branch={note.branch || ""}
-            author={note.author || ""}
+            author={note.author.name || ""}
             verified={note.verified || false}
             pinned={note.pinned || false}
             trending={note.trending || false}
