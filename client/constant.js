@@ -11,7 +11,7 @@ export const navLinks = [
         href: "/upload"
     }
     ,{
-        title: "CGPA Calc",
+        title: "MyCGPA",
         href: "/cgpa-calc"
     }
 ]
