@@ -146,7 +146,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
                       by {note.author}
                     </span>
                     <Button size="sm" variant="outline" asChild>
-                      <Link href={note.file_url.webViewLink} target="_blank">
+                      <Link href={note.file_url.webViewLink} >
                         <ExternalLink className="w-3 h-3 mr-1" />
                         View
                       </Link>
