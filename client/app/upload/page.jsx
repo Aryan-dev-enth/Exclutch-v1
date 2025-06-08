@@ -6,15 +6,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
-import { Upload, AlertCircle, FileText, CheckCircle2 } from "lucide-react"
+import { Upload, alertCircle, FileText, CheckCircle2 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getStorage } from "firebase/storage"
 import { getPublicFileUrl, uploadFile, removeFile } from "@/components/utils/uploadToSupabase"
 import { postNotes } from "@/notes_api"
 import { UserAuth } from "@/context/AuthContext"
-
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 export default function UploadPage() {
   const storage = getStorage()
   const [currentStep, setCurrentStep] = useState(1)
@@ -24,7 +24,7 @@ export default function UploadPage() {
   const [currentFile, setCurrentFile] = useState(null)
   const {user} = UserAuth();
 
-
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     supabase_path: null,
@@ -39,6 +39,23 @@ export default function UploadPage() {
     content: "",
     userId :null,
   })
+
+  // Function to check if all required fields are filled
+  const isFormValid = () => {
+    const requiredFields = [
+      'document_type',
+      'title',
+      'content'
+    ];
+    
+    const allFieldsFilled = requiredFields.every(field => 
+      formData[field] && formData[field].toString().trim() !== ""
+    );
+    
+    const fileUploaded = uploadStatus === "success" && formData.supabase_path;
+    
+    return allFieldsFilled && fileUploaded;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -64,13 +81,13 @@ export default function UploadPage() {
       const response = await uploadFile(file)
       setUploadProgress(40) // Update progress after file upload
 
-      console.log(response)
+     
       formData.supabase_path = response
 
       const responseUrl = await getPublicFileUrl(response.path)
       setUploadProgress(70) 
 
-      console.log(responseUrl)
+      
       formData.url = responseUrl.publicUrl
 
       if(formData.supabase_path && formData.url)
@@ -92,16 +109,18 @@ export default function UploadPage() {
     e.preventDefault()
 
     if (!formData.supabase_path) {
-      alert("Please upload a file first")
+      toast("Please upload a file first")
       return
     }
 
     try {
       setUploadStatus("uploading")
       const response = await postNotes(formData, user.uid);
-      console.log(response)
+     
       setUploadStatus("success")
-      alert("Notes uploaded successfully!");
+      toast("Notes uploaded successfully!");
+      router.push("/")
+      
 
       
       setCurrentFile(null)
@@ -114,7 +133,7 @@ export default function UploadPage() {
       if (formData.supabase_path && formData.supabase_path.path) {
         try {
           await removeFile(formData.supabase_path.path)
-          console.log("File removed from Supabase due to API failure")
+        
         } catch (cleanupError) {
           console.error("Failed to remove file from Supabase:", cleanupError)
         }
@@ -207,19 +226,19 @@ export default function UploadPage() {
                       <Progress value={uploadProgress} className="h-2" />
 
                       {uploadStatus === "success" && (
-                        <Alert className="bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200">
+                        <alert className="bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200">
                           <CheckCircle2 className="h-4 w-4" />
-                          <AlertTitle>Upload successful!</AlertTitle>
-                          <AlertDescription>Your file has been uploaded successfully.</AlertDescription>
-                        </Alert>
+                          <alertTitle>Upload successful!</alertTitle>
+                          <alertDescription>Your file has been uploaded successfully.</alertDescription>
+                        </alert>
                       )}
 
                       {uploadStatus === "error" && (
-                        <Alert variant="destructive">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertTitle>Upload failed</AlertTitle>
-                          <AlertDescription>There was an error uploading your file. Please try again.</AlertDescription>
-                        </Alert>
+                        <alert variant="destructive">
+                          <alertCircle className="h-4 w-4" />
+                          <alertTitle>Upload failed</alertTitle>
+                          <alertDescription>There was an error uploading your file. Please try again.</alertDescription>
+                        </alert>
                       )}
                     </div>
                   )}
@@ -395,7 +414,10 @@ export default function UploadPage() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">
-              <Button onClick={() => setCurrentStep(2)} disabled={uploadStatus !== "success"}>
+              <Button 
+                onClick={() => setCurrentStep(2)} 
+                disabled={!isFormValid()}
+              >
                 Review & Submit
               </Button>
             </CardFooter>
@@ -457,14 +479,14 @@ export default function UploadPage() {
                   <p className="whitespace-pre-line">{aiDescription || formData.content}</p>
                 </div>
 
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Important Information</AlertTitle>
-                  <AlertDescription>
+                <alert>
+                  <alertCircle className="h-4 w-4" />
+                  <alertTitle>Important Information</alertTitle>
+                  <alertDescription>
                     By submitting this document, you confirm that you have the right to share it and that it does not
                     violate our content policy or copyright laws.
-                  </AlertDescription>
-                </Alert>
+                  </alertDescription>
+                </alert>
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
@@ -479,4 +501,3 @@ export default function UploadPage() {
     </div>
   )
 }
-

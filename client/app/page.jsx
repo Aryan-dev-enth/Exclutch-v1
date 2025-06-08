@@ -25,7 +25,7 @@ export default function Home() {
     if (!user) {
       const timer = setTimeout(() => {
         setShowAuthPopup(true);
-      }, 200);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [user]);
@@ -98,14 +98,7 @@ export default function Home() {
                   <h2 className="text-3xl font-bold tracking-tight">Welcome to StudyNotes</h2>
                   <p className="text-muted-foreground">Your gateway to academic success</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAuthPopup(false)}
-                  className="h-9 w-9 rounded-full hover:bg-muted"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
+                
               </div>
               
               <div className="space-y-6 mb-8">

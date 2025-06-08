@@ -100,7 +100,7 @@ export const fetchNoteById = async (noteId) => {
 
   export const rejectNotes = async (note, userId) => {
     try {
-      console.log(userId)
+      
       // const sb_deleted= await removeFile(note.supabase_path);
       // console.log("deleted from supabase", sb_deleted)
       const response = await axios.delete(
