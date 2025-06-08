@@ -13,7 +13,14 @@ const db_url = process.env.MONGODB_URI;
 const db_name = process.env.MONGODB_NAME;
 
 const corsOptions = {
-  origin: '*', 
+  origin: function (origin, callback) {
+    const allowedOrigins = ['https://exclutch.vercel.app', 'http://localhost:3000'];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   preflightContinue: false,
   optionsSuccessStatus: 204
