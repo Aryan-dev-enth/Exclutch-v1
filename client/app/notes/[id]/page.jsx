@@ -70,7 +70,7 @@ export default function NoteDetailPage({ params }) {
     "📚 *Exclutch (Beta)* – Your one-stop platform for PYQs and Notes!\n" +
     "Built *by SRMUH students, for SRMUH students* ❤️\n\n" +
     "📝 *" + (note.title || "Untitled Note") + "*\n\n" +
-    "Start preparing smarter, not harder! 👇\n" +
+   
     currentUrl + "\n\n" +
     "👥 Join the Exclutch WhatsApp Community:\n" +
     "https://chat.whatsapp.com/ChPwEABIUbtEPqTHMH1KP4",
