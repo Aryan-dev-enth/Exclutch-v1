@@ -211,7 +211,7 @@ export default function UploadPage() {
                       accept=".pdf,.doc,.docx,.ppt,.pptx"
                       onChange={handleFileUpload}
                     />
-                    <Button onClick={() => document.getElementById("fileUpload")?.click()}>Select Files <50MB</Button>
+                    <Button onClick={() => document.getElementById("fileUpload")?.click()}>Select Files upto 50MB</Button>
                   </div>
 
                   {uploadStatus && currentFile && (
