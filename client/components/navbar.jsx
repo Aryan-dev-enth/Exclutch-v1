@@ -11,7 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
 import { navLinks } from "@/constant";
 
@@ -23,23 +28,21 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, googleSignIn, logout, setSavedUser } = UserAuth();
 
- 
-  
   useEffect(() => {
     const fetchUser = async () => {
-        if (user) {
-            try {
-                const response = await getUserByUID(user.uid);
-                localStorage.setItem("user", JSON.stringify(response.data));
+      if (user) {
+        try {
+          const response = await getUserByUID(user.uid);
+          localStorage.setItem("user", JSON.stringify(response.data));
 
-                setSavedUser(response.data)
-            } catch (error) {
-                console.error("Error fetching user:", error);
-            }
+          setSavedUser(response.data);
+        } catch (error) {
+          console.error("Error fetching user:", error);
         }
+      }
     };
     fetchUser();
-}, [user])
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,8 +62,7 @@ export function Navbar() {
   const isLoggedIn = false;
 
   return (
-    <header
-      className="sticky top-0 z-50 w-fulltransition-all duration-200 bg-background">
+    <header className="sticky top-0 z-50 w-fulltransition-all duration-200 bg-background">
       <div className=" flex w-full h-16 sm:px-16 py-2 lg:px-8 px-4 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-8 lg:gap-10">
           <Link href="/" className="flex items-center space-x-2">
@@ -86,7 +88,8 @@ export function Navbar() {
               <Link
                 key={index}
                 href={navlink.href}
-                className="text-sm font-medium transition-colors hover:text-primary">
+                className="text-sm font-medium transition-colors hover:text-primary"
+              >
                 {navlink.title}
               </Link>
             ))}
@@ -146,8 +149,7 @@ export function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard">Dashboard</Link>
                   </DropdownMenuItem>
-                  
-                  
+
                   <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -170,39 +172,84 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
-                aria-label="Menu"
+                className="md:hidden relative h-10 w-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label="Open navigation menu"
               >
-                <Menu className="h-5 w-5 " />
+                <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />
               </Button>
             </SheetTrigger>
-            <SheetTitle className={"hidden"}>Menu</SheetTitle>
-            <SheetContent side="right">
-              <div className="flex flex-col gap-6 p-6">
-                {navLinks.map((navlink, index) => (
-                  <Link
-                    key={index}
-                    href={navlink.href}
-                    className="text-lg font-medium hover:text-primary"
-                  >
-                    {navlink.title}
-                  </Link>
-                ))}
 
-                {!isLoggedIn && (
-                  <div className="flex flex-col gap-2 pt-4">
+            <SheetContent side="right" className="w-80 p-0">
+              <div className="flex h-full flex-col">
+                {/* Header */}
+                <div className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 px-6 py-4">
+                  <SheetTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Navigation
+                  </SheetTitle>
+                </div>
+
+                {/* Navigation Links */}
+                <nav className="flex-1 overflow-y-auto px-6 py-4 bg-white dark:bg-black">
+                  <div className="space-y-2">
+                    {navLinks.map((navlink, index) => (
+                      <Link
+                        key={index}
+                        href={navlink.href}
+                        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white transition-all duration-200"
+                      >
+                        {navlink.icon && (
+                          <navlink.icon className="h-5 w-5 flex-shrink-0" />
+                        )}
+                        {navlink.title}
+                      </Link>
+                    ))}
+                  </div>
+                </nav>
+
+                {/* Divider */}
+                <div className="border-t border-gray-200 dark:border-gray-800" />
+
+                {/* Footer/Auth Section */}
+                <div className="p-6 bg-gray-50 dark:bg-gray-900">
                   {user ? (
-                    <Button variant="outline" onClick={logout}>
-                      Logout
-                    </Button>
+                    <div className="space-y-4">
+                      {/* User Info */}
+                      <div className="flex items-center space-x-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-medium text-primary">
+                            {user.email?.[0] || "U"}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Logout Button */}
+                      <Button
+                        variant="outline"
+                        onClick={logout}
+                        className="w-full justify-center text-sm font-medium"
+                      >
+                        Sign Out
+                      </Button>
+                    </div>
                   ) : (
-                    <Button variant="outline" onClick={googleSignIn}>
-                      Sign In
-                    </Button>
+                    <div className="space-y-3">
+                      <p className="text-sm text-center text-gray-600 dark:text-gray-400">
+                        Sign in to access your account
+                      </p>
+                      <Button
+                        onClick={googleSignIn}
+                        className="w-full justify-center text-sm font-medium"
+                      >
+                        Sign In with Google
+                      </Button>
+                    </div>
                   )}
                 </div>
-                
-                )}
               </div>
             </SheetContent>
           </Sheet>
