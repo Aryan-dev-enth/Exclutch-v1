@@ -272,7 +272,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
         <div className="p-4 space-y-3">
           {/* Header */}
           <div>
-            <Link href={`/notes/${note?._id || '#'}`} target="_blank" rel="noopener noreferrer">
+            <Link href={`/notes/${note?._id || '#'}`} rel="noopener noreferrer">
               <h3 className="font-semibold line-clamp-2 group-hover:text-blue-600 transition-colors">
                 {note?.title || "Untitled"}
               </h3>
