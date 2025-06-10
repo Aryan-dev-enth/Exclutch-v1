@@ -55,7 +55,7 @@ export function DeveloperDialog() {
                   className="mx-auto h-42 w-42 overflow-hidden rounded-full shadow-lg bg-gray-100"
                 >
                   <img
-                    src="/developer.jpg"
+                    src="https://res.cloudinary.com/do3vqgriw/image/upload/v1749542899/qtvu1blvwl0t1iqkacvf.jpg"
                     alt="Team Photo"
                     className="h-full w-full object-cover"
                     onError={(e) => {
