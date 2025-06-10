@@ -33,7 +33,7 @@ export function NoteCard({ note, viewMode = "grid" }) {
   };
 
   const getPreviewUrl = () => {
-    return `https://drive.google.com/file/d/${note?.gapis_file_id || 'default'}/preview`;
+    return note.url || `https://drive.google.com/file/d/${note?.gapis_file_id || 'default'}/preview`;
   };
 
   // Helper function to get author name with fallback

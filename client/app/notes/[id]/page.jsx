@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, use, useEffect } from "react";
+import axios from "axios";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -156,10 +157,20 @@ export default function NoteDetailPage({ params }) {
   };
 
   // Handle save
-  const handleSave = () => {
-    setIsSaved((prev) => !prev);
-  };
+ const handleSave = async () => {
+  try {
+    const res = await axios.put(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/${user.uid}/savedNotes/${note._id}`
+    );
 
+    // Optionally update savedNotes state from response
+    console.log(res.data.message); // "Note saved successfully" or "Note unsaved successfully"
+    
+    setIsSaved((prev) => !prev);
+  } catch (error) {
+    console.error("Error toggling saved note:", error.response?.data || error.message);
+  }
+};
   useEffect(() => {
     const fetchNote = async () => {
       try {
@@ -270,7 +281,7 @@ export default function NoteDetailPage({ params }) {
                     <TabsTrigger value="details">Details</TabsTrigger>
                   </TabsList>
                   <TabsContent value="description" className="pt-4">
-                    <p>{note.description || "No description available."}</p>
+                    
                     <p className="mt-4">{note.content || ""}</p>
                   </TabsContent>
                   <TabsContent value="details" className="pt-4">
@@ -324,7 +335,7 @@ export default function NoteDetailPage({ params }) {
                   </Button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={handleSave}>
+                  <Button className="cursor-pointer" size="sm" onClick={handleSave}>
                     <BookmarkIcon
                       className={`mr-1 h-4 w-4 ${
                         isSaved ? "fill-current text-brand" : ""

@@ -12,4 +12,6 @@ router.put("/:uid", UserController.updateUser);
 router.put("/:uid/role", UserController.changeRole);
 router.put("/:uid/status", UserController.changeStatus);
 
+router.put("/:uid/savedNotes/:noteId", UserController.toggleSavedNote);
+
 export default router;

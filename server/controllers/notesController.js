@@ -41,6 +41,7 @@ class NotesController {
       });
 
       const savedNote = await newNote.save();
+     
       res
         .status(201)
         .json({ message: "Note uploaded successfully!", data: savedNote });

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import axios from "axios";
 import {
   Card,
   CardContent,
@@ -20,6 +21,7 @@ import {
   Upload,
   Award,
 } from "lucide-react";
+import { useNotes } from "@/context/NotesContext";
 
 import { UserAuth } from "@/context/AuthContext";
 import { getUserByUID } from "@/user_api";
@@ -29,17 +31,63 @@ export default function Dashboard() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSavedNotes, setShowSavedNotes] = useState(false);
+  const { notes } = useNotes();
+  // Track saved status for each note individually
+  const [savedNotesStatus, setSavedNotesStatus] = useState({});
 
   useEffect(() => {
     const fetchUser = async () => {
       if (user?.uid) {
         const res = await getUserByUID(user.uid);
-        if (res) setUserData(res.data);
+        if (res) {
+          setUserData(res.data);
+          // Initialize saved status for all saved notes
+          const initialSavedStatus = {};
+          res.data.savedNotes.forEach(note => {
+            initialSavedStatus[note._id] = true;
+          });
+          setSavedNotesStatus(initialSavedStatus);
+        }
         setLoading(false);
       }
     };
     fetchUser();
   }, [user]);
+
+  const handleSave = async (note) => {
+    try {
+      const res = await axios.put(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/users/${user.uid}/savedNotes/${note._id}`
+      );
+      
+      // Update the saved status for this specific note
+      setSavedNotesStatus(prev => ({
+        ...prev,
+        [note._id]: !prev[note._id]
+      }));
+      
+      // Update userData to reflect the change
+      setUserData(prevUserData => {
+        const isCurrentlySaved = savedNotesStatus[note._id];
+        if (isCurrentlySaved) {
+          // Remove from saved notes
+          return {
+            ...prevUserData,
+            savedNotes: prevUserData.savedNotes.filter(savedNote => savedNote._id !== note._id)
+          };
+        } else {
+          // Add to saved notes
+          return {
+            ...prevUserData,
+            savedNotes: [...prevUserData.savedNotes, note]
+          };
+        }
+      });
+      
+    } catch (error) {
+      console.error("Error saving note:", error);
+    }
+  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -185,7 +233,10 @@ export default function Dashboard() {
                 <Upload className="w-8 h-8 text-green-600" />
                 <div>
                   <p className="text-2xl font-bold">
-                    {userData.uploadedNotes.length}
+                    {
+                      notes.filter((note) => note.author._id === userData._id)
+                        .length
+                    }
                   </p>
                   <p className="text-gray-600 text-sm">Uploaded Notes</p>
                 </div>
@@ -198,7 +249,14 @@ export default function Dashboard() {
               <div className="flex items-center space-x-2">
                 <Heart className="w-8 h-8 text-red-600" />
                 <div>
-                  <p className="text-2xl font-bold">{userData.likes.length}</p>
+                  <p className="text-2xl font-bold">
+                    {notes
+                      .filter((note) => note.author._id === userData._id)
+                      .reduce(
+                        (sum, note) => sum + (note.likes?.length || 0),
+                        0
+                      )}
+                  </p>
                   <p className="text-gray-600 text-sm">Likes</p>
                 </div>
               </div>
@@ -225,25 +283,28 @@ export default function Dashboard() {
               <Card
                 key={note._id}
                 className="border p-4 hover:shadow-md transition cursor-pointer"
-                onClick={() => window.location.href = `/notes/${note._id}`}
               >
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <iframe
-                    src={`https://drive.google.com/file/d/${note.gapis_file_id}/preview`}
-                    width="100%"
-                    height="200"
-                    allow="autoplay"
-                    className="rounded-md md:w-1/3"
-                  ></iframe>
-                  <div className="flex-1 space-y-1 md:pl-4">
-                    <h4 className="text-lg font-semibold">{note.title}</h4>
-                    <p className="text-sm text-gray-600">{note.content}</p>
-                    <p className="text-xs text-gray-500">{note.college}</p>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Heart className="w-4 h-4 text-red-500" />
-                      {note.likes.length} Likes
-                    </div>
+                <div className="flex-1 space-y-1 md:pl-4">
+                  <h4 className="text-lg font-semibold">{note.title}</h4>
+
+                  <p className="text-xs text-gray-500">{note.college}</p>
+
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Heart className="w-4 h-4 text-red-500" />
+                    {note.likes.length} Likes
                   </div>
+
+                  {/* Save/Unsave Button */}
+                  <button
+                    onClick={() => handleSave(note)}
+                    className={`text-xs px-3 py-1 rounded-full border ${
+                      savedNotesStatus[note._id]
+                        ? "bg-red-100 text-red-500 border-red-300"
+                        : "bg-gray-100 text-gray-500 border-gray-300"
+                    }`}
+                  >
+                    {savedNotesStatus[note._id] ? "Unsave" : "Save"}
+                  </button>
                 </div>
               </Card>
             ))}
@@ -274,7 +335,6 @@ export default function Dashboard() {
                   Active
                 </Badge>
               </div>
-              
             </div>
           </CardContent>
         </Card>
