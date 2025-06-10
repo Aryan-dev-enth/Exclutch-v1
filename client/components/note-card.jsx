@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from "react";
 import {
   Heart,
   Eye,
@@ -31,6 +32,14 @@ export function NoteCard({ note, viewMode = "grid" }) {
       return "Invalid date";
     }
   };
+
+  const getThumbnailUrl = () => {
+  if (note.gapis_file_id) {
+    return `https://drive.google.com/thumbnail?id=${note.gapis_file_id}`;
+  }
+  return '/default-thumbnail.png'; // fallback image
+};
+
 
   const getPreviewUrl = () => {
     return note.url || `https://drive.google.com/file/d/${note?.gapis_file_id || 'default'}/preview`;
@@ -78,11 +87,11 @@ export function NoteCard({ note, viewMode = "grid" }) {
             {/* Preview Image */}
             <div className="relative sm:w-48 sm:flex-shrink-0">
               <div className="aspect-[4/3] sm:aspect-square overflow-hidden bg-muted">
-                <iframe
-                  src={getPreviewUrl()}
-                  className="h-full w-full border-0"
-                  title={`Preview of ${note?.title || 'Untitled'}`}
-                />
+                <LazyIframe
+  src={getPreviewUrl()}
+  title={`Preview of ${note?.title || 'Untitled'}`}
+/>
+
               </div>
               {/* Status Badges */}
               <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -217,11 +226,11 @@ export function NoteCard({ note, viewMode = "grid" }) {
       <CardContent className="p-0">
         {/* Preview Image */}
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          <iframe
-            src={note?.url || getPreviewUrl()}
-            className="h-full w-full border-0 transition-transform group-hover:scale-105"
-            title={`Preview of ${note?.title || 'Untitled'}`}
-          />
+          <LazyIframe
+  src={getPreviewUrl()}
+  title={`Preview of ${note?.title || 'Untitled'}`}
+/>
+
 
           {/* Status Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -337,5 +346,50 @@ export function NoteCard({ note, viewMode = "grid" }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+
+
+function LazyIframe({ src, title }) {
+  const ref = useRef();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: "100px", // load a bit before visible
+        threshold: 0.1,
+      }
+    );
+
+    if (ref.current) observer.observe(ref.current);
+
+    return () => {
+      if (ref.current) observer.unobserve(ref.current);
+    };
+  }, []);
+
+  return (
+    <div ref={ref} className="w-full h-full bg-muted">
+      {isVisible ? (
+        <iframe
+          src={src}
+          className="h-full w-full border-0"
+          title={title}
+          loading="lazy"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground">
+          Loading preview...
+        </div>
+      )}
+    </div>
   );
 }
