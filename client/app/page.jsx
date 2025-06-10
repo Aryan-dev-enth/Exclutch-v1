@@ -211,7 +211,7 @@ export default function Home() {
                 </h1>
 
                 <p className="mx-auto max-w-2xl text-lg md:text-xl text-muted-foreground leading-relaxed">
-                  Discover high-quality study notes shared by students around the globe, 
+                  Discover high-quality study notes shared by students around you, 
                   designed to help you succeed in your academic journey.
                 </p>
               </motion.div>
