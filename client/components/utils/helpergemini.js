@@ -22,6 +22,5 @@ export async function generateTitleAndDescriptionFromPDF(url) {
         contents: contents
     });
     
-    console.log("AI result: ", response.text);
     return response.text
 }

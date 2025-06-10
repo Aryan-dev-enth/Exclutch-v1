@@ -114,12 +114,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-primary">My Profile</h1>
+          <p className="text-secondary-foreground mt-2">
             Manage your account information and preferences
           </p>
         </div>
@@ -154,7 +154,7 @@ export default function Dashboard() {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Role:</span>
+                    <span className="text-secondary-foreground">Role:</span>
                     <Badge
                       variant="secondary"
                       className="flex items-center gap-1"
@@ -164,7 +164,7 @@ export default function Dashboard() {
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Status:</span>
+                    <span className="text-secondary-foreground">Status:</span>
                     <Badge
                       variant={
                         userData.status === "active" ? "default" : "secondary"
@@ -185,13 +185,13 @@ export default function Dashboard() {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Created:</span>
+                    <span className="text-secondary-foreground">Created:</span>
                     <span className="text-sm">
                       {formatDate(userData.createdAt)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Last Updated:</span>
+                    <span className="text-secondary-foreground">Last Updated:</span>
                     <span className="text-sm">
                       {formatDate(userData.updatedAt)}
                     </span>
@@ -321,10 +321,10 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 border-2 rounded-lg">
                 <div>
                   <h4 className="font-medium">Account Status</h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-secondary-foreground">
                     Your account is currently active and in good standing
                   </p>
                 </div>

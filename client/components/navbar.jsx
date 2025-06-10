@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "./mode-toggle";
-import { Search, Bell, User, Menu } from "lucide-react";
+import { Search, Bell, User, Menu, User2Icon, LogOutIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -97,7 +97,7 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-4">
           {/* Desktop Search Icon */}
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             className="hidden md:flex"
@@ -107,7 +107,7 @@ export function Navbar() {
               <Search className="h-5 w-5" />
               <span className="sr-only">Search</span>
             </Link>
-          </Button>
+          </Button> */}
 
           <ModeToggle />
 
@@ -147,10 +147,11 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard">Dashboard</Link>
+                    <Link href="/dashboard" className="flex items-center"><User2Icon/>  Dashboard</Link>
+                    
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout}><LogOutIcon/> Logout</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
