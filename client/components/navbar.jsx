@@ -110,10 +110,7 @@ export function Navbar() {
         <div className="flex items-center gap-4">
           
 
-          <Link href="https://coff.ee/aryandeventh" className="text-yellow-600 flex items-center">
-              <Coffee className="w-5 h-5" />
-              
-            </Link>
+          
 
           <ModeToggle />
 
