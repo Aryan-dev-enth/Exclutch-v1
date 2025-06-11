@@ -168,7 +168,6 @@ export default function UploadPage() {
 
       const response = await postNotes(formData, user.uid);
       
-      console.log(response)
 
        
 

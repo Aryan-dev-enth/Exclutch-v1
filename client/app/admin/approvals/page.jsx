@@ -79,37 +79,30 @@ export default function NotesApprovalPage() {
   };
 
   // Handle note approval
-  const handleApprove =async (note) => {
+  const handleApprove = async (note) => {
+    const response = await noteApproval(
+      note._id,
+      JSON.parse(localStorage.getItem("user"))._id
+    );
 
-    
+    const emailContent = {
+      title: "Your Notes Are Now Live - Exclutch",
+      user_name: selectedNote.author.name,
+      actionType: "uploading your study notes",
+      custom_message:
+        "Great news! Your notes have been reviewed and approved. They are now live and accessible to the community. Thanks for making a valuable contribution!",
+      ctaText: "View Your Published Notes",
+      ctaLink: "https://exclutch.vercel.app/notes/" + note._id,
+      name: "Exclutch",
+      email: "exclutch.help@gmail.com",
+      from_email: selectedNote.author.email,
+    };
 
-    
-    
-    const response = await noteApproval(note._id, JSON.parse(localStorage.getItem("user"))._id)
-
-    
-
-const emailContent = {
-  title: "Your Notes Are Now Live - Exclutch",
-  user_name: selectedNote.author.name,
-  actionType: "uploading your study notes",
-  custom_message:
-    "Great news! Your notes have been reviewed and approved. They are now live and accessible to the community. Thanks for making a valuable contribution!",
-  ctaText: "View Your Published Notes",
-  ctaLink: "https://exclutch.vercel.app/notes/"+note._id, 
-  name: "Exclutch",
-  email: "exclutch.help@gmail.com",        
-  from_email: selectedNote.author.email            
-};
-
-await sendEmail(emailContent);
-
+    await sendEmail(emailContent);
 
     alert(
       `Note "${note.title}" has been approved and the user has been notified.`
     );
-
-
 
     // Update local state (in a real app, this would happen after API returns success)
     setPendingNotes(pendingNotes.filter((n) => n._id !== note._id));
@@ -119,8 +112,6 @@ await sendEmail(emailContent);
   const handleUpdate = () => {
     if (!editedNote) return;
 
-    // TODO: API call to update and approve the note
-    console.log(`Updating and approving note: ${editedNote._id}`, editedNote);
     alert(`Note "${editedNote.title}" has been updated and approved.`);
 
     // Update local state (in a real app, this would happen after API returns success)
@@ -135,26 +126,27 @@ await sendEmail(emailContent);
       return;
     }
 
-    const currentUser = JSON.parse(localStorage.getItem("user"));
+    const emailContent = {
+      title: "Note Upload Rejected - Exclutch",
+      user_name: selectedNote.author.name,
+      actionType: "submitting your study notes",
+      custom_message:
+        "Unfortunately, your uploaded notes did not meet our quality guidelines. Please review and make the necessary improvements before trying again." +
+        "\nRejection Reason: " +
+        rejectionReason,
+      ctaText: "Visit Exclutch",
+      ctaLink: "https://exclutch.vercel.app/",
+      name: "Exclutch",
+      email: "exclutch.help@gmail.com",
+      from_email: selectedNote.author.email,
+    };
 
-const emailContent = {
-  title: "Note Upload Rejected - Exclutch",
-  user_name: selectedNote.author.name,
-  actionType: "submitting your study notes",
-  custom_message:
-    "Unfortunately, your uploaded notes did not meet our quality guidelines. Please review and make the necessary improvements before trying again."+"\nRejection Reason: "+rejectionReason,
-  ctaText: "Visit Exclutch",
-  ctaLink: "https://exclutch.vercel.app/", 
-  name: "Exclutch",
-  email: "exclutch.help@gmail.com",
-  from_email: selectedNote.author.email    
-};
+    await sendEmail(emailContent);
 
-await sendEmail(emailContent);
-
-
-    const response= await rejectNotes(selectedNote,  JSON.parse(localStorage.getItem("user"))._id )
-    console.log("Response: ", response)
+    const response = await rejectNotes(
+      selectedNote,
+      JSON.parse(localStorage.getItem("user"))._id
+    );
 
     alert(
       `Note "${selectedNote?.title}" has been rejected and the user has been notified of the reason.`

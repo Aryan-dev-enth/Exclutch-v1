@@ -207,7 +207,6 @@ class NotesController {
       const updatedNote = await Note.findByIdAndUpdate(noteId, updateFields, {
         new: true,
       });
-      console.log(updatedNote);
       if (!updatedNote)
         return res.status(404).json({ error: "Note not found" });
 
