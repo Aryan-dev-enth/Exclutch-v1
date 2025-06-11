@@ -9,7 +9,7 @@ const AUTO_MINIMIZE_DELAY = 8000 // 8 seconds before auto-minimizing
 
 export default function CoffeeFloater() {
   const [isVisible, setIsVisible] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(true)
 
   useEffect(() => {
     const showTimer = setTimeout(() => {
