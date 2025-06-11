@@ -8,6 +8,7 @@ import { NotesProvider } from "@/context/NotesContext";
 import ApiStatusFloater from "@/components/api-floater";
 import { Toaster } from "@/components/ui/sonner"
 import { Analytics } from "@vercel/analytics/next"
+import CoffeeFloater from "@/components/coffee-floater";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -62,6 +63,7 @@ export default function RootLayout({ children }) {
                   <Analytics/>
                   {children}
                   <ApiStatusFloater />
+                  <CoffeeFloater />
                 </main>
                 <Footer />
               </div>

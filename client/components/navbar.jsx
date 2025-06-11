@@ -4,7 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "./mode-toggle";
-import { Search, Bell, User, Menu, User2Icon, LogOutIcon } from "lucide-react";
+import {
+  Search,
+  Bell,
+  User,
+  Menu,
+  User2Icon,
+  LogOutIcon,
+  Coffee,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,21 +101,19 @@ export function Navbar() {
                 {navlink.title}
               </Link>
             ))}
+
+            
           </nav>
+
         </div>
+        
         <div className="flex items-center gap-4">
-          {/* Desktop Search Icon */}
-          {/* <Button
-            variant="ghost"
-            size="icon"
-            className="hidden md:flex"
-            asChild
-          >
-            <Link href="/notes">
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Search</span>
+          
+
+          <Link href="https://coff.ee/aryandeventh" className="text-yellow-600 flex items-center">
+              <Coffee className="w-5 h-5" />
+              
             </Link>
-          </Button> */}
 
           <ModeToggle />
 
@@ -147,11 +153,14 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="flex items-center"><User2Icon/>  Dashboard</Link>
-                    
+                    <Link href="/dashboard" className="flex items-center">
+                      <User2Icon /> Dashboard
+                    </Link>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem onClick={logout}><LogOutIcon/> Logout</DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout}>
+                    <LogOutIcon /> Logout
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
