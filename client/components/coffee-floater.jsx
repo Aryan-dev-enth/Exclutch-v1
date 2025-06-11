@@ -268,7 +268,7 @@ export default function CoffeeFloater() {
                   {isMobile ? (
                     <>
                       <IndianRupee className="w-4 h-4" />
-                      Save me ₹{customAmount} 🥺
+                      Pay ₹{customAmount} 
                     </>
                   ) : (
                     <>
