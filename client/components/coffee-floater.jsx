@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Coffee, Heart, ChevronsDown } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
-const DISPLAY_DELAY = 10000 // 10 seconds before showing
+const DISPLAY_DELAY = 3000 // 10 seconds before showing
 const AUTO_MINIMIZE_DELAY = 8000 // 8 seconds before auto-minimizing
 
 export default function CoffeeFloater() {
