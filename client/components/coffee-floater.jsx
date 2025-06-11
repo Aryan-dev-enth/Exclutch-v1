@@ -3,8 +3,28 @@
 import { useEffect, useState } from "react"
 import { Coffee, Heart, ChevronsDown, IndianRupee, QrCode, Smartphone, Monitor, X } from "lucide-react"
 
-const DISPLAY_DELAY = 10000 // 10 seconds before showing
+const DISPLAY_DELAY = 2000 // 10 seconds before showing
 const AUTO_MINIMIZE_DELAY = 8000 // 8 seconds before auto-minimizing
+
+// Funky messages that rotate
+const FUNKY_MESSAGES = [
+  "Server bills are eating my zomato budget! 🍜",
+  "My wallet is as empty as my coffee cup ☕",
+  "AWS is charging me more than my pocket money! 💸",
+  "Help! The server hamsters need food! 🐹",
+  "I'm surviving on instant noodles for hosting costs! 🍝",
+  "My bank account: 404 - Money not found! 💰",
+  "Trading sleep for server uptime... send help! 😴",
+  "The cloud storage is full but my pockets are empty! ☁️"
+]
+
+const CALL_TO_ACTION = [
+  "Your ₹50 = ?! 🍕",
+  "Keep the servers alive with chai money! ☕",
+  "Fund my midnight coding sessions! 🌙",
+  "Help me keep SRM students happy! 🎓",
+  "Every rupee counts in this economy! 📈"
+]
 
 // QR Code generation function using a simple algorithm
 const generateQRCode = (text) => {
@@ -22,6 +42,26 @@ export default function CoffeeFloater() {
   const [isCustomAmountMode, setIsCustomAmountMode] = useState(false)
   const [qrCode, setQrCode] = useState("")
   const [isMobile, setIsMobile] = useState(false)
+  const [currentMessage, setCurrentMessage] = useState(0)
+  const [currentCTA, setCurrentCTA] = useState(0)
+
+  // Rotate funky messages every 3 seconds
+  useEffect(() => {
+    if (!isVisible || isMinimized) return
+    const messageInterval = setInterval(() => {
+      setCurrentMessage((prev) => (prev + 1) % FUNKY_MESSAGES.length)
+    }, 3000)
+    return () => clearInterval(messageInterval)
+  }, [isVisible, isMinimized])
+
+  // Rotate call-to-action every 4 seconds
+  useEffect(() => {
+    if (!isVisible || isMinimized) return
+    const ctaInterval = setInterval(() => {
+      setCurrentCTA((prev) => (prev + 1) % CALL_TO_ACTION.length)
+    }, 4000)
+    return () => clearInterval(ctaInterval)
+  }, [isVisible, isMinimized])
 
   // Detect mobile device
   useEffect(() => {
@@ -105,9 +145,7 @@ export default function CoffeeFloater() {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                 Scan with any UPI app to pay ₹{customAmount || "50"}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-500">
-                aryan28november@oksbi
-              </p>
+              
             </div>
           </div>
         </div>
@@ -141,18 +179,18 @@ export default function CoffeeFloater() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">
-                      Support Exclutch ☕
+                      Broke Developer Alert! 🚨
                     </h3>
                     <p className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
                       {isMobile ? (
                         <>
                           <Smartphone className="w-3 h-3" />
-                          Direct UPI
+                          Tap to save me!
                         </>
                       ) : (
                         <>
                           <Monitor className="w-3 h-3" />
-                          QR Code
+                          Scan to rescue!
                         </>
                       )}
                     </p>
@@ -166,9 +204,14 @@ export default function CoffeeFloater() {
                 </button>
               </div>
 
-              <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-                Help keep this platform free for SRM students. {isMobile ? "One tap UPI" : "Scan QR code"} to Aryan Singh!
-              </p>
+              <div className="mb-4">
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium transition-all duration-500">
+                  {FUNKY_MESSAGES[currentMessage]}
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 transition-all duration-500">
+                  {CALL_TO_ACTION[currentCTA]}
+                </p>
+              </div>
 
               {/* Amount Selection */}
               <div className="mb-4">
@@ -220,17 +263,17 @@ export default function CoffeeFloater() {
                 <button
                   onClick={handleUPIClick}
                   disabled={!customAmount || customAmount === "0"}
-                  className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg"
+                  className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                 >
                   {isMobile ? (
                     <>
                       <IndianRupee className="w-4 h-4" />
-                      Pay ₹{customAmount}
+                      Save me ₹{customAmount} 🥺
                     </>
                   ) : (
                     <>
                       <QrCode className="w-4 h-4" />
-                      Show QR ₹{customAmount}
+                      Pay ₹{customAmount} 
                     </>
                   )}
                 </button>
@@ -238,7 +281,7 @@ export default function CoffeeFloater() {
                   onClick={() => setIsMinimized(true)}
                   className="px-3 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
                 >
-                  Later
+                  Maybe later 😅
                 </button>
               </div>
 
