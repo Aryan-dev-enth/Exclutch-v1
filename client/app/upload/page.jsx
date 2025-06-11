@@ -1,38 +1,66 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Upload, FileText, CheckCircle2, Sparkles, Brain, Zap, Loader2, AlertCircle } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getStorage } from "firebase/storage"
-import { getPublicFileUrl, uploadFile, removeFile } from "@/components/utils/uploadToSupabase"
-import { postNotes } from "@/notes_api"
-import { UserAuth } from "@/context/AuthContext"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import { generateTitleAndDescriptionFromPDF } from "@/components/utils/helpergemini"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { motion } from "framer-motion"
-import { Badge } from "@/components/ui/badge"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Upload,
+  FileText,
+  CheckCircle2,
+  Sparkles,
+  Brain,
+  Zap,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getStorage } from "firebase/storage";
+import {
+  getPublicFileUrl,
+  uploadFile,
+  removeFile,
+} from "@/components/utils/uploadToSupabase";
+import { postNotes } from "@/notes_api";
+import { UserAuth } from "@/context/AuthContext";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { generateTitleAndDescriptionFromPDF } from "@/components/utils/helpergemini";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
+import { sendEmail } from "@/components/utils/emailService";
+import { getUserByUID } from "@/user_api";
 
 export default function UploadPage() {
-  const storage = getStorage()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [uploadStatus, setUploadStatus] = useState("idle")
-  const [aiDescription, setAiDescription] = useState("")
-  const [currentFile, setCurrentFile] = useState(null)
-  const { user } = UserAuth()
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [currentProcessStep, setCurrentProcessStep] = useState("")
+  const storage = getStorage();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState("idle");
+  const [aiDescription, setAiDescription] = useState("");
+  const [currentFile, setCurrentFile] = useState(null);
+  const { user } = UserAuth();
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentProcessStep, setCurrentProcessStep] = useState("");
 
-  const router = useRouter()
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     supabase_path: null,
@@ -46,117 +74,146 @@ export default function UploadPage() {
     title: "",
     content: "",
     userId: null,
-  })
+  });
 
   // Function to check if all required fields are filled
   const isFormValid = () => {
-    const requiredFields = ["document_type", "title", "content"]
-    const allFieldsFilled = requiredFields.every((field) => formData[field] && formData[field].toString().trim() !== "")
-    const fileUploaded = uploadStatus === "success" && formData.supabase_path
-    return allFieldsFilled && fileUploaded
-  }
+    const requiredFields = ["document_type", "title", "content"];
+    const allFieldsFilled = requiredFields.every(
+      (field) => formData[field] && formData[field].toString().trim() !== ""
+    );
+    const fileUploaded = uploadStatus === "success" && formData.supabase_path;
+    return allFieldsFilled && fileUploaded;
+  };
 
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleFileUpload = async (e) => {
     if (!e.target.files || e.target.files.length === 0) {
-      return
+      return;
     }
 
-    setUploadStatus("uploading")
-    setUploadProgress(10)
-    setCurrentProcessStep("Uploading file...")
+    setUploadStatus("uploading");
+    setUploadProgress(10);
+    setCurrentProcessStep("Uploading file...");
 
-    const file = e.target.files[0]
-    setCurrentFile(file)
+    const file = e.target.files[0];
+    setCurrentFile(file);
 
     try {
-      const response = await uploadFile(file)
-      setUploadProgress(40)
-      setCurrentProcessStep("Processing file...")
+      const response = await uploadFile(file);
+      setUploadProgress(40);
+      setCurrentProcessStep("Processing file...");
 
-      formData.supabase_path = response
+      
 
-      const responseUrl = await getPublicFileUrl(response.path)
-      setUploadProgress(50)
-      setCurrentProcessStep("Generating AI insights...")
+      formData.supabase_path = response;
 
-      setIsGeneratingAI(true)
-      const aitext = await generateTitleAndDescriptionFromPDF(responseUrl.publicUrl)
-      setIsGeneratingAI(false)
-      setUploadProgress(90)
-      setCurrentProcessStep("Finalizing...")
+      const responseUrl = await getPublicFileUrl(response.path);
+      setUploadProgress(50);
+      setCurrentProcessStep("Generating AI insights...");
 
-      formData.url = responseUrl.publicUrl
+      setIsGeneratingAI(true);
+      const aitext = await generateTitleAndDescriptionFromPDF(
+        responseUrl.publicUrl
+      );
+      setIsGeneratingAI(false);
+      setUploadProgress(90);
+      setCurrentProcessStep("Finalizing...");
+
+      formData.url = responseUrl.publicUrl;
       if (formData.supabase_path && formData.url) {
-        formData.content = aitext
-        setAiDescription(aitext)
+        formData.content = aitext;
+        setAiDescription(aitext);
 
-        setUploadProgress(100)
-        setUploadStatus("success")
-        setCurrentProcessStep("Complete!")
+        setUploadProgress(100);
+        setUploadStatus("success");
+        setCurrentProcessStep("Complete!");
 
+        
 
-        return
+       
+
+        return;
       }
-      setUploadStatus("error")
+      setUploadStatus("error");
     } catch (error) {
-      console.error("File upload failed:", error)
-      setUploadStatus("error")
-      setIsGeneratingAI(false)
-      setCurrentProcessStep("Error occurred")
-      toast.error("File upload failed. Please try again.")
+      console.error("File upload failed:", error);
+      setUploadStatus("error");
+      setIsGeneratingAI(false);
+      setCurrentProcessStep("Error occurred");
+      toast.error("File upload failed. Please try again.");
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.supabase_path) {
-      toast.error("Please upload a file first")
-      return
+      toast.error("Please upload a file first");
+      return;
     }
 
     try {
-      setIsSubmitting(true)
-      setUploadStatus("uploading")
-      setCurrentProcessStep("Submitting your notes...")
+      setIsSubmitting(true);
+      setUploadStatus("uploading");
+      setCurrentProcessStep("Submitting your notes...");
 
-      const response = await postNotes(formData, user.uid)
+      const response = await postNotes(formData, user.uid);
+      
+      console.log(response)
 
-      setUploadStatus("success")
-      setCurrentProcessStep("Success!")
-      toast.success("Notes uploaded successfully!")
+       
+
+      setUploadStatus("success");
+      setCurrentProcessStep("Success!");
+
+      toast.success("Notes uploaded successfully!");
+      const currentUser = JSON.parse(localStorage.getItem("user"));
+      const emailContent = {
+          title: "Upload Successful - Exclutch",
+          user_name: currentUser.name,
+          actionType: "uploading your study notes",
+          custom_message:
+            "Thanks for contributing! Your notes have been uploaded and are now pending review.",
+          ctaText: "Visit Exclutch",
+          ctaLink: "https://exclutch.vercel.app/",
+          name:"Exclutch",
+          email:"exclutch.help@gmail.com",
+          from_email: currentUser.email,
+        };
+
+        await sendEmail(emailContent);
 
       setTimeout(() => {
-        router.push("/")
-      }, 1500)
+        router.push("/");
+      }, 500);
 
-      setCurrentFile(null)
+      setCurrentFile(null);
     } catch (error) {
-      console.error("Failed to post notes:", error)
-      setUploadStatus("error")
-      setCurrentProcessStep("Submission failed")
-      toast.error("Failed to upload notes. Please try again.")
+      console.error("Failed to post notes:", error);
+      setUploadStatus("error");
+      setCurrentProcessStep("Submission failed");
+      toast.error("Failed to upload notes. Please try again.");
 
       if (formData.supabase_path && formData.supabase_path.path) {
         try {
-          await removeFile(formData.supabase_path.path)
+          await removeFile(formData.supabase_path.path);
         } catch (cleanupError) {
-          console.error("Failed to remove file from Supabase:", cleanupError)
+          console.error("Failed to remove file from Supabase:", cleanupError);
         }
       }
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 dark:from-primary/10 dark:to-secondary/10">
@@ -178,7 +235,9 @@ export default function UploadPage() {
 
               <div className="space-y-3">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {isGeneratingAI ? "AI is analyzing your document..." : currentProcessStep}
+                  {isGeneratingAI
+                    ? "AI is analyzing your document..."
+                    : currentProcessStep}
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   {isGeneratingAI
@@ -189,7 +248,9 @@ export default function UploadPage() {
 
               <div className="space-y-2">
                 <Progress value={uploadProgress} className="h-2" />
-                <p className="text-xs text-gray-500">{uploadProgress}% complete</p>
+                <p className="text-xs text-gray-500">
+                  {uploadProgress}% complete
+                </p>
               </div>
 
               {isGeneratingAI && (
@@ -207,8 +268,15 @@ export default function UploadPage() {
         <div className="mx-auto max-w-4xl">
           {/* Header */}
           <div className="mb-12 text-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <Badge variant="secondary" className="px-4 py-2 text-sm font-medium rounded-full border shadow-sm mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <Badge
+                variant="secondary"
+                className="px-4 py-2 text-sm font-medium rounded-full border shadow-sm mb-6"
+              >
                 <Sparkles className="w-4 h-4 mr-2" />
                 AI-Powered Document Analysis
               </Badge>
@@ -220,7 +288,8 @@ export default function UploadPage() {
               </h1>
             </div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Share your knowledge with the Exclutch community using AI-powered insights
+              Share your knowledge with the Exclutch community using AI-powered
+              insights
             </p>
           </div>
 
@@ -237,7 +306,11 @@ export default function UploadPage() {
                     }`}
                   >
                     <div className="absolute inset-0 flex items-center justify-center font-semibold">
-                      {uploadStatus === "success" && currentStep === 1 ? <CheckCircle2 className="w-6 h-6" /> : "1"}
+                      {uploadStatus === "success" && currentStep === 1 ? (
+                        <CheckCircle2 className="w-6 h-6" />
+                      ) : (
+                        "1"
+                      )}
                     </div>
                     {currentStep === 1 && uploadStatus === "uploading" && (
                       <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-red-600 rounded-full opacity-30 animate-ping"></div>
@@ -255,7 +328,9 @@ export default function UploadPage() {
                 <div className="flex-1 mx-8">
                   <div
                     className={`h-2 rounded-full transition-all duration-500 ${
-                      currentStep >= 2 ? "bg-gradient-to-r from-orange-500 to-red-600" : "bg-gray-200"
+                      currentStep >= 2
+                        ? "bg-gradient-to-r from-orange-500 to-red-600"
+                        : "bg-gray-200"
                     }`}
                   ></div>
                 </div>
@@ -269,7 +344,11 @@ export default function UploadPage() {
                     }`}
                   >
                     <div className="absolute inset-0 flex items-center justify-center font-semibold">
-                      {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : "2"}
+                      {isSubmitting ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        "2"
+                      )}
                     </div>
                     {currentStep === 2 && isSubmitting && (
                       <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full opacity-30 animate-ping"></div>
@@ -292,7 +371,8 @@ export default function UploadPage() {
               <CardHeader className="pb-8">
                 <CardTitle className="text-2xl">Upload Study Notes</CardTitle>
                 <CardDescription className="text-base">
-                  Upload your document and let our AI help you create the perfect description
+                  Upload your document and let our AI help you create the
+                  perfect description
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -335,7 +415,8 @@ export default function UploadPage() {
                             Drag and drop your files here
                           </p>
                           <p className="text-gray-500">
-                            or click to browse files • PDF, DOC, DOCX, PPT, PPTX up to 50MB
+                            or click to browse files • PDF, DOC, DOCX, PPT, PPTX
+                            up to 50MB
                           </p>
                         </div>
                         <Input
@@ -346,7 +427,9 @@ export default function UploadPage() {
                           onChange={handleFileUpload}
                         />
                         <Button
-                          onClick={() => document.getElementById("fileUpload")?.click()}
+                          onClick={() =>
+                            document.getElementById("fileUpload")?.click()
+                          }
                           className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                           disabled={uploadStatus === "uploading"}
                         >
@@ -370,33 +453,49 @@ export default function UploadPage() {
                               <FileText className="h-5 w-5 text-orange-600" />
                             </div>
                             <div>
-                              <span className="font-medium text-gray-900 dark:text-white">{currentFile.name}</span>
-                              <p className="text-sm text-gray-500">{currentProcessStep}</p>
+                              <span className="font-medium text-gray-900 dark:text-white">
+                                {currentFile.name}
+                              </span>
+                              <p className="text-sm text-gray-500">
+                                {currentProcessStep}
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <span className="text-sm font-medium text-orange-600">{uploadProgress}%</span>
+                            <span className="text-sm font-medium text-orange-600">
+                              {uploadProgress}%
+                            </span>
                           </div>
                         </div>
 
-                        <Progress value={uploadProgress} className="h-3 bg-gray-200 dark:bg-gray-700" />
+                        <Progress
+                          value={uploadProgress}
+                          className="h-3 bg-gray-200 dark:bg-gray-700"
+                        />
 
                         {uploadStatus === "success" && (
                           <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20 animate-in slide-in-from-bottom-2">
                             <CheckCircle2 className="h-5 w-5 text-green-600" />
-                            <AlertTitle className="text-green-800 dark:text-green-200">Upload successful!</AlertTitle>
+                            <AlertTitle className="text-green-800 dark:text-green-200">
+                              Upload successful!
+                            </AlertTitle>
                             <AlertDescription className="text-green-700 dark:text-green-300">
-                              Your file has been uploaded and analyzed by our AI.
+                              Your file has been uploaded and analyzed by our
+                              AI.
                             </AlertDescription>
                           </Alert>
                         )}
 
                         {uploadStatus === "error" && (
-                          <Alert variant="destructive" className="animate-in slide-in-from-bottom-2">
+                          <Alert
+                            variant="destructive"
+                            className="animate-in slide-in-from-bottom-2"
+                          >
                             <AlertCircle className="h-4 w-4" />
                             <AlertTitle>Upload failed</AlertTitle>
                             <AlertDescription>
-                              There was an error uploading your file. Please try again.
+                              There was an error uploading your file. Please try
+                              again.
                             </AlertDescription>
                           </Alert>
                         )}
@@ -409,7 +508,11 @@ export default function UploadPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className={`transition-all duration-500 ${uploadStatus === "success" ? "opacity-100" : "opacity-50 pointer-events-none"}`}
+                    className={`transition-all duration-500 ${
+                      uploadStatus === "success"
+                        ? "opacity-100"
+                        : "opacity-50 pointer-events-none"
+                    }`}
                   >
                     <h3 className="text-xl font-semibold mb-6 flex items-center space-x-2">
                       <FileText className="w-5 h-5 text-red-600" />
@@ -418,26 +521,38 @@ export default function UploadPage() {
                     <form onSubmit={handleSubmit} className="space-y-8">
                       <div className="grid gap-6 md:grid-cols-2">
                         <div>
-                          <label className="block text-sm font-medium mb-2" htmlFor="type">
+                          <label
+                            className="block text-sm font-medium mb-2"
+                            htmlFor="type"
+                          >
                             Note Type
                           </label>
                           <Select
-                            onValueChange={(value) => handleSelectChange("document_type", value)}
+                            onValueChange={(value) =>
+                              handleSelectChange("document_type", value)
+                            }
                             value={formData.document_type}
                           >
                             <SelectTrigger className="h-12 rounded-xl border-2 border-border focus:border-primary focus:ring-2 focus:ring-primary/20">
                               <SelectValue placeholder="Select type" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Notes">📚 Lecture Notes</SelectItem>
-                              <SelectItem value="Assignment">📝 Assignment</SelectItem>
+                              <SelectItem value="Notes">
+                                📚 Lecture Notes
+                              </SelectItem>
+                              <SelectItem value="Assignment">
+                                📝 Assignment
+                              </SelectItem>
                               <SelectItem value="Exam">🎯 Past Exam</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-2" htmlFor="subject">
+                          <label
+                            className="block text-sm font-medium mb-2"
+                            htmlFor="subject"
+                          >
                             Subject
                           </label>
                           <Input
@@ -451,11 +566,16 @@ export default function UploadPage() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-2" htmlFor="semester">
+                          <label
+                            className="block text-sm font-medium mb-2"
+                            htmlFor="semester"
+                          >
                             Semester
                           </label>
                           <Select
-                            onValueChange={(value) => handleSelectChange("semester", value)}
+                            onValueChange={(value) =>
+                              handleSelectChange("semester", value)
+                            }
                             value={formData.semester}
                           >
                             <SelectTrigger className="h-12 rounded-xl border-2 border-border focus:border-primary focus:ring-2 focus:ring-primary/20">
@@ -465,7 +585,14 @@ export default function UploadPage() {
                               {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
                                 <SelectItem key={sem} value={sem.toString()}>
                                   {sem}
-                                  {sem === 1 ? "st" : sem === 2 ? "nd" : sem === 3 ? "rd" : "th"} Semester
+                                  {sem === 1
+                                    ? "st"
+                                    : sem === 2
+                                    ? "nd"
+                                    : sem === 3
+                                    ? "rd"
+                                    : "th"}{" "}
+                                  Semester
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -473,29 +600,47 @@ export default function UploadPage() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-2" htmlFor="branch">
+                          <label
+                            className="block text-sm font-medium mb-2"
+                            htmlFor="branch"
+                          >
                             Branch
                           </label>
                           <Select
-                            onValueChange={(value) => handleSelectChange("branch", value)}
+                            onValueChange={(value) =>
+                              handleSelectChange("branch", value)
+                            }
                             value={formData.branch}
                           >
                             <SelectTrigger className="h-12 rounded-xl border-2 border-border focus:border-primary focus:ring-2 focus:ring-primary/20">
                               <SelectValue placeholder="Select branch" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="cs">💻 Computer Science</SelectItem>
-                              <SelectItem value="ee">⚡ Electrical Engineering</SelectItem>
-                              <SelectItem value="me">⚙️ Mechanical Engineering</SelectItem>
-                              <SelectItem value="ce">🏗️ Civil Engineering</SelectItem>
-                              <SelectItem value="che">🧪 Chemical Engineering</SelectItem>
+                              <SelectItem value="cs">
+                                💻 Computer Science
+                              </SelectItem>
+                              <SelectItem value="ee">
+                                ⚡ Electrical Engineering
+                              </SelectItem>
+                              <SelectItem value="me">
+                                ⚙️ Mechanical Engineering
+                              </SelectItem>
+                              <SelectItem value="ce">
+                                🏗️ Civil Engineering
+                              </SelectItem>
+                              <SelectItem value="che">
+                                🧪 Chemical Engineering
+                              </SelectItem>
                               <SelectItem value="oth">📋 Other</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-2" htmlFor="university">
+                          <label
+                            className="block text-sm font-medium mb-2"
+                            htmlFor="university"
+                          >
                             Institute
                           </label>
                           <Input
@@ -509,7 +654,10 @@ export default function UploadPage() {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-2" htmlFor="subjectCode">
+                          <label
+                            className="block text-sm font-medium mb-2"
+                            htmlFor="subjectCode"
+                          >
                             Subject Code (Optional)
                           </label>
                           <Input
@@ -524,7 +672,10 @@ export default function UploadPage() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium mb-2" htmlFor="title">
+                        <label
+                          className="block text-sm font-medium mb-2"
+                          htmlFor="title"
+                        >
                           Document Title
                         </label>
                         <Input
@@ -543,7 +694,11 @@ export default function UploadPage() {
                             <TabsTrigger value="manual" className="rounded-lg">
                               ✍️ Manual Description
                             </TabsTrigger>
-                            <TabsTrigger value="ai" disabled={!aiDescription && !isGeneratingAI} className="rounded-lg">
+                            <TabsTrigger
+                              value="ai"
+                              disabled={!aiDescription && !isGeneratingAI}
+                              className="rounded-lg"
+                            >
                               {isGeneratingAI ? (
                                 <>
                                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -559,7 +714,10 @@ export default function UploadPage() {
                           </TabsList>
                           <TabsContent value="manual" className="mt-6">
                             <div>
-                              <label className="block text-sm font-medium mb-2" htmlFor="content">
+                              <label
+                                className="block text-sm font-medium mb-2"
+                                htmlFor="content"
+                              >
                                 Content Description
                               </label>
                               <Textarea
@@ -571,13 +729,17 @@ export default function UploadPage() {
                                 onChange={handleChange}
                               />
                               <p className="text-sm text-muted-foreground mt-2">
-                                Provide details about the content, topics covered, and why it's useful.
+                                Provide details about the content, topics
+                                covered, and why it's useful.
                               </p>
                             </div>
                           </TabsContent>
                           <TabsContent value="ai" className="mt-6">
                             <div>
-                              <label className="block text-sm font-medium mb-2" htmlFor="ai-description">
+                              <label
+                                className="block text-sm font-medium mb-2"
+                                htmlFor="ai-description"
+                              >
                                 AI-Generated Description
                               </label>
                               <div className="relative">
@@ -586,8 +748,8 @@ export default function UploadPage() {
                                   name="description"
                                   value={aiDescription}
                                   onChange={(e) => {
-                                    setAiDescription(e.target.value)
-                                    handleChange(e)
+                                    setAiDescription(e.target.value);
+                                    handleChange(e);
                                   }}
                                   className="min-h-32 resize-none rounded-xl border-2 border-border focus:border-primary focus:ring-2 focus:ring-primary/20 pr-12"
                                 />
@@ -601,7 +763,8 @@ export default function UploadPage() {
                               <p className="text-sm text-muted-foreground mt-2 flex items-center space-x-1">
                                 <Sparkles className="w-4 h-4 text-orange-500" />
                                 <span>
-                                  Our AI has analyzed your document and generated this description. Feel free to edit
+                                  Our AI has analyzed your document and
+                                  generated this description. Feel free to edit
                                   it.
                                 </span>
                               </p>
@@ -647,8 +810,14 @@ export default function UploadPage() {
                         <FileText className="h-8 w-8 text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold text-lg text-gray-900 dark:text-white">{formData.title}</p>
-                        {currentFile && <p className="text-sm text-gray-600 dark:text-gray-400">{currentFile.name}</p>}
+                        <p className="font-semibold text-lg text-gray-900 dark:text-white">
+                          {formData.title}
+                        </p>
+                        {currentFile && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {currentFile.name}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -660,19 +829,33 @@ export default function UploadPage() {
                       { label: "Semester", value: formData.semester },
                       { label: "Branch", value: formData.branch },
                       { label: "College", value: formData.college },
-                      { label: "Subject Code", value: formData.subjectCode || "Not specified" },
+                      {
+                        label: "Subject Code",
+                        value: formData.subjectCode || "Not specified",
+                      },
                     ].map((item, index) => (
-                      <div key={index} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">{item.label}</p>
-                        <p className="text-gray-900 dark:text-white">{item.value}</p>
+                      <div
+                        key={index}
+                        className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl"
+                      >
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          {item.label}
+                        </p>
+                        <p className="text-gray-900 dark:text-white">
+                          {item.value}
+                        </p>
                       </div>
                     ))}
                   </div>
 
                   <div className="space-y-4">
                     <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Title</p>
-                      <p className="text-gray-900 dark:text-white font-medium">{formData.title}</p>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                        Title
+                      </p>
+                      <p className="text-gray-900 dark:text-white font-medium">
+                        {formData.title}
+                      </p>
                     </div>
 
                     <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
@@ -693,10 +876,13 @@ export default function UploadPage() {
 
                   <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
                     <AlertCircle className="h-5 w-5 text-amber-600" />
-                    <AlertTitle className="text-amber-800 dark:text-amber-200">Important Information</AlertTitle>
+                    <AlertTitle className="text-amber-800 dark:text-amber-200">
+                      Important Information
+                    </AlertTitle>
                     <AlertDescription className="text-amber-700 dark:text-amber-300">
-                      By submitting this document, you confirm that you have the right to share it and that it does not
-                      violate our content policy or copyright laws.
+                      By submitting this document, you confirm that you have the
+                      right to share it and that it does not violate our content
+                      policy or copyright laws.
                     </AlertDescription>
                   </Alert>
                 </div>
@@ -734,5 +920,5 @@ export default function UploadPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
